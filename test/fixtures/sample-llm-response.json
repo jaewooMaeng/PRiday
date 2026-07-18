@@ -1,0 +1,51 @@
+{
+  "callGraph": {
+    "root": {
+      "id": "root",
+      "name": "main()",
+      "type": "function",
+      "signature": "def main()",
+      "summary": "전체 제어 흐름",
+      "bulletPoints": ["validate_args 호출", "greet 호출"],
+      "lineRange": { "start": 11, "end": 14 },
+      "filename": "main.py",
+      "children": [
+        {
+          "id": "validate",
+          "name": "validate_args()",
+          "type": "function",
+          "signature": "def validate_args()",
+          "summary": "인수 검증",
+          "bulletPoints": ["argv 검사"],
+          "lineRange": { "start": 3, "end": 6 },
+          "filename": "main.py",
+          "children": []
+        },
+        {
+          "id": "greet",
+          "name": "greet(name)",
+          "type": "function",
+          "signature": "def greet(name)",
+          "summary": "인사 생성",
+          "bulletPoints": ["f-string 출력"],
+          "lineRange": { "start": 8, "end": 9 },
+          "filename": "main.py",
+          "children": []
+        }
+      ]
+    }
+  },
+  "summaryBlocks": [
+    {
+      "id": "block_001",
+      "blockType": "function_def",
+      "title": "Block 1: validate_args",
+      "codeSnippet": "def validate_args():\n    if len(sys.argv) != 2:\n        sys.exit(1)",
+      "lineRange": { "start": 3, "end": 6 },
+      "filename": "main.py",
+      "explanation": "validate_args 함수는 인수 개수를 확인합니다. 조건 불일치 시 종료합니다.",
+      "keyChanges": ["입력 검증 분리"]
+    }
+  ],
+  "prSummary": "입력 검증을 함수로 분리해 흐름이 명확해졌습니다."
+}

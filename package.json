@@ -1,0 +1,123 @@
+{
+  "name": "ai-pr-insight",
+  "displayName": "AI PR Insight",
+  "description": "LLM-powered interactive PR analysis with call graphs and code mapping",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-pr-insight.analyzePR",
+        "title": "AI PR Insight: Analyze Pull Request"
+      },
+      {
+        "command": "ai-pr-insight.setGitHubToken",
+        "title": "AI PR Insight: Set GitHub Token"
+      },
+      {
+        "command": "ai-pr-insight.setLLMApiKey",
+        "title": "AI PR Insight: Set LLM API Key"
+      },
+      {
+        "command": "ai-pr-insight.setLLMProvider",
+        "title": "AI PR Insight: Set LLM Provider"
+      },
+      {
+        "command": "ai-pr-insight.setLLMModel",
+        "title": "AI PR Insight: Set LLM Model"
+      }
+    ],
+    "configuration": {
+      "title": "AI PR Insight",
+      "properties": {
+        "aiPrInsight.llm.provider": {
+          "type": "string",
+          "default": "gemini",
+          "enum": [
+            "ollama",
+            "gemini",
+            "claude",
+            "chatgpt"
+          ],
+          "description": "Active LLM provider"
+        },
+        "aiPrInsight.llm.ollamaEndpoint": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama API endpoint"
+        },
+        "aiPrInsight.llm.ollamaModel": {
+          "type": "string",
+          "default": "llama3",
+          "description": "Ollama model name"
+        },
+        "aiPrInsight.llm.geminiModel": {
+          "type": "string",
+          "default": "gemini-2.5-flash",
+          "description": "Gemini model name"
+        },
+        "aiPrInsight.llm.claudeModel": {
+          "type": "string",
+          "default": "claude-sonnet-4-20250514",
+          "description": "Claude model name"
+        },
+        "aiPrInsight.llm.chatgptModel": {
+          "type": "string",
+          "default": "gpt-5.5",
+          "description": "ChatGPT model name"
+        },
+        "aiPrInsight.llm.language": {
+          "type": "string",
+          "default": "ko",
+          "enum": ["en", "ko"],
+          "enumDescriptions": ["English", "한국어"],
+          "description": "Language for LLM analysis output"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "check-types": "tsc --noEmit -p .",
+    "test": "jest --runInBand",
+    "vscode:prepublish": "npm run compile"
+  },
+  "keywords": [
+    "vscode",
+    "pr-review",
+    "llm"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@google/generative-ai": "^0.24.1",
+    "@octokit/rest": "^22.0.1",
+    "web-tree-sitter": "^0.26.7"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.15.21",
+    "@swc/jest": "^0.2.39",
+    "@types/d3": "^7.4.3",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/vscode": "^1.110.0",
+    "@vscode/webview-ui-toolkit": "^1.4.0",
+    "d3": "^7.9.0",
+    "esbuild": "^0.27.4",
+    "jest": "^30.3.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^6.0.2"
+  }
+}
