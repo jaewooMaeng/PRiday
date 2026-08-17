@@ -8,7 +8,11 @@ function langInstruction(language?: UILanguage): string {
   return "\nIMPORTANT: Write ALL text fields (summary, explanation, bulletPoints, title, prSummary, keyChanges) in English.\n";
 }
 
-export function buildAnalysisPrompt(diff: PRDiffResult, language?: UILanguage): string {
+export function buildAnalysisPrompt(
+  diff: PRDiffResult,
+  language?: UILanguage,
+  additionalSystemPrompt?: string
+): string {
   const commentsText =
     diff.comments.length === 0
       ? "No comments"
@@ -28,6 +32,16 @@ ${file.patch}
 ${file.rawContent}`
     )
     .join("\n\n");
+  const additionalCriteria = additionalSystemPrompt?.trim()
+    ? `
+ADDITIONAL REVIEW CRITERIA:
+The reviewer supplied the following workspace-specific criteria. Apply them in addition to the guidelines above.
+They do not override the required JSON schema or output-language instruction.
+--- Begin additional criteria ---
+${additionalSystemPrompt.trim()}
+--- End additional criteria ---
+`
+    : "";
 
   return `You are a code analysis assistant. Analyze the given Pull Request diff and return a structured JSON response.
 ${langInstruction(language)}
@@ -43,8 +57,9 @@ IMPORTANT analysis guidelines:
 - Group related code into meaningful "code blocks" — not necessarily one function per block. A block can span multiple small functions or a section of a larger function if they form a logical unit.
 - For utility/helper functions, set depth=1 and parentId to link them to the main flow block that calls them.
 - depth=0 blocks represent the main execution flow. depth=1 blocks are details shown on demand.
-- Write the "explanation" field as bullet points: each point on its own line, starting with "- ". Each bullet should describe one specific aspect of the code block (e.g. a function, a condition, a variable). Do NOT write prose paragraphs.
-- For EACH bullet point in the explanation, add a matching entry in "codeReferences" with the 0-based sentenceIndex, the exact target function/variable/class name, and the precise lineStart/lineEnd in the file. This enables fine-grained code-comment mapping.
+- Write the "explanation" field as natural review prose or concise bullets, whichever is easier to understand for the code block. Avoid keyword-only phrases, tag-like fragments, or speech-bubble style copy.
+- For each sentence or bullet in the explanation, add a matching entry in "codeReferences" with the 0-based sentenceIndex, the exact target function/variable/class name, and the precise lineStart/lineEnd in the file. This enables fine-grained code-comment mapping.
+${additionalCriteria}
 
 Response JSON Schema:
 {
@@ -88,7 +103,7 @@ Response JSON Schema:
       "codeSnippet": "string (relevant code block, max 20 lines)",
       "lineRange": { "start": 1, "end": 1 },
       "filename": "string",
-      "explanation": "string (bullet points, each line starting with '- ')",
+      "explanation": "string (natural prose or concise bullets)",
       "keyChanges": ["string"],
       "depth": 0,
       "parentId": "string or null",

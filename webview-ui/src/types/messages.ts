@@ -84,6 +84,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  modelLabel?: string;
 }
 
 export type UILanguage = "en" | "ko";
@@ -98,6 +99,7 @@ export interface LLMConfigPayload {
   claudeModel?: string;
   chatgptModel?: string;
   language?: UILanguage;
+  additionalSystemPrompt?: string;
   hasGeminiApiKey?: boolean;
   hasClaudeApiKey?: boolean;
   hasOpenAIApiKey?: boolean;

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type {
   CallGraphFile,
   CallGraphNode,
@@ -18,11 +18,6 @@ interface Props {
   onBlockClick: (filename: string, lineRange: LineRange) => void;
 }
 
-interface FlowNode {
-  node: CallGraphNode;
-  depth: number;
-}
-
 interface NormalizedGraphFile {
   id: string;
   filename: string;
@@ -31,20 +26,28 @@ interface NormalizedGraphFile {
   relatedFiles: string[];
 }
 
+interface GraphEdge {
+  id: string;
+  parentId: string;
+  childId: string;
+  path: string;
+}
+
+interface GraphCanvasSize {
+  width: number;
+  height: number;
+}
+
 function countNodes(node: CallGraphNode): number {
   return 1 + node.children.reduce((sum, child) => sum + countNodes(child), 0);
 }
 
-function flattenByDepth(root: CallGraphNode): FlowNode[][] {
-  const levels: FlowNode[][] = [];
-  const visit = (node: CallGraphNode, depth: number) => {
-    const level = levels[depth] ?? [];
-    level.push({ node, depth });
-    levels[depth] = level;
-    node.children.forEach((child) => visit(child, depth + 1));
-  };
-  visit(root, 0);
-  return levels;
+function collectEdges(node: CallGraphNode, out: Array<[CallGraphNode, CallGraphNode]> = []): Array<[CallGraphNode, CallGraphNode]> {
+  node.children.forEach((child) => {
+    out.push([node, child]);
+    collectEdges(child, out);
+  });
+  return out;
 }
 
 function findNode(root: CallGraphNode, id: string): CallGraphNode | null {
@@ -146,8 +149,32 @@ function normalizeGraphFiles(
 }
 
 function nodeLabel(node: CallGraphNode): string {
-  const signature = node.signature?.replace(/^[^(]*\(/, "").replace(/\)$/, "");
-  return signature ? `${node.name}(${signature})` : node.name;
+  return node.name.replace(/\(.*\)$/, "");
+}
+
+function nodeArguments(node: CallGraphNode): string {
+  const match = node.signature?.match(/\((.*)\)/s);
+  return match?.[1]?.trim() ?? "";
+}
+
+function nodeTypeLabel(node: CallGraphNode): string {
+  if (node.type === "module") return "Module";
+  if (node.type === "class") return "Class";
+  if (node.type === "method") return "Method";
+  return "Function";
+}
+
+function nodeIcon(node: CallGraphNode): string {
+  if (node.type === "module") return "M";
+  if (node.type === "class") return "C";
+  if (node.type === "method") return "m";
+  return "f";
+}
+
+function nodeIconClass(node: CallGraphNode): string {
+  if (node.type === "module") return "fn-icon-mod";
+  if (node.type === "class") return "fn-icon-dec";
+  return "fn-icon-fn";
 }
 
 function rangesOverlap(a: LineRange, b: LineRange): boolean {
@@ -169,18 +196,69 @@ export function CallGraphView({
   highlightedSentence,
   onSentenceDrag,
   onBlockClick,
-}: Props): JSX.Element {
+}: Props): React.JSX.Element {
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set());
   const [collapsedSnippets, setCollapsedSnippets] = useState<Set<string>>(new Set());
+  const [graphEdges, setGraphEdges] = useState<GraphEdge[]>([]);
+  const [graphCanvasSize, setGraphCanvasSize] = useState<GraphCanvasSize>({ width: 0, height: 0 });
+  const treeRef = useRef<HTMLDivElement>(null);
+  const nodeRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const graphFiles = useMemo(() => normalizeGraphFiles(callGraph, files), [callGraph, files]);
   const selectedFile = graphFiles.find((file) => file.id === selectedFileId) ?? graphFiles[0];
-  const levels = useMemo(
-    () => (selectedFile ? flattenByDepth(selectedFile.root) : []),
-    [selectedFile]
-  );
+  const measureGraph = useCallback(() => {
+    const tree = treeRef.current;
+    if (!tree || !selectedFile) {
+      setGraphEdges([]);
+      return;
+    }
+
+    const treeRect = tree.getBoundingClientRect();
+    const width = Math.max(tree.clientWidth, tree.scrollWidth);
+    const height = Math.max(tree.clientHeight, tree.scrollHeight);
+    const nextEdges = collectEdges(selectedFile.root).flatMap(([parent, child], index) => {
+      const parentElement = nodeRefs.current.get(parent.id);
+      const childElement = nodeRefs.current.get(child.id);
+      if (!parentElement || !childElement) return [];
+
+      const parentRect = parentElement.getBoundingClientRect();
+      const childRect = childElement.getBoundingClientRect();
+      const startX = parentRect.left - treeRect.left + parentRect.width / 2;
+      const startY = parentRect.bottom - treeRect.top;
+      const endX = childRect.left - treeRect.left + childRect.width / 2;
+      const endY = childRect.top - treeRect.top - 5;
+      const middleY = startY + Math.max(12, (endY - startY) / 2);
+
+      return [{
+        id: `${parent.id}:${child.id}:${index}`,
+        parentId: parent.id,
+        childId: child.id,
+        path: `M ${startX} ${startY} L ${startX} ${middleY} L ${endX} ${middleY} L ${endX} ${endY}`,
+      }];
+    });
+
+    setGraphCanvasSize({ width, height });
+    setGraphEdges(nextEdges);
+  }, [selectedFile]);
+
+  useLayoutEffect(() => {
+    const tree = treeRef.current;
+    if (!tree || !selectedFile) return;
+
+    const frame = window.requestAnimationFrame(measureGraph);
+    const observer = new ResizeObserver(() => measureGraph());
+    observer.observe(tree);
+    nodeRefs.current.forEach((node) => observer.observe(node));
+    window.addEventListener("resize", measureGraph);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", measureGraph);
+    };
+  }, [measureGraph, selectedFile]);
 
   if (!selectedFile) {
     return (
@@ -232,8 +310,9 @@ export function CallGraphView({
     });
   }
 
-  function renderSummaryBlock(block: SummaryBlock, isChild = false): JSX.Element {
+  function renderSummaryBlock(block: SummaryBlock, isChild = false): React.JSX.Element {
     const bullets = splitBulletPoints(block.explanation);
+    const hasBulletFormatting = /^\s*(?:[-*•]|\d+[.)])\s+/m.test(block.explanation);
     const refMap = new Map<number, { targetName: string; lineStart: number; lineEnd: number }>();
     block.codeReferences?.forEach((ref) => refMap.set(ref.sentenceIndex, ref));
     const childBlocks = childBlocksByParent.get(block.id) ?? [];
@@ -262,33 +341,61 @@ export function CallGraphView({
           </pre>
         )}
 
-        <ul className="bullet-list graph-bullet-list">
-          {bullets.map((bullet, index) => {
-            const ref = refMap.get(index);
-            const isHighlighted =
-              highlightedSentence?.blockId === block.id &&
-              highlightedSentence?.sentenceIndex === index;
-            return (
-              <li
-                key={index}
-                className={`bullet-item ${isHighlighted ? "bullet-highlight" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSentenceDrag({ blockId: block.id, sentenceIndex: index });
-                }}
-              >
-                <span className="bullet-text">
-                  {bullet}
+        {hasBulletFormatting && bullets.length > 1 ? (
+          <ul className="bullet-list graph-bullet-list">
+            {bullets.map((bullet, index) => {
+              const ref = refMap.get(index);
+              const isHighlighted =
+                highlightedSentence?.blockId === block.id &&
+                highlightedSentence?.sentenceIndex === index;
+              return (
+                <li
+                  key={index}
+                  className={`bullet-item ${isHighlighted ? "bullet-highlight" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSentenceDrag({ blockId: block.id, sentenceIndex: index });
+                  }}
+                >
+                  <span className="bullet-text">
+                    {bullet}
+                    {ref && (
+                      <span className="bullet-ref" title={`${ref.targetName} (L${ref.lineStart}-${ref.lineEnd})`}>
+                        {ref.targetName} L{ref.lineStart}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="graph-prose-list">
+            {bullets.map((text, index) => {
+              const ref = refMap.get(index);
+              const isHighlighted =
+                highlightedSentence?.blockId === block.id &&
+                highlightedSentence?.sentenceIndex === index;
+              return (
+                <p
+                  key={index}
+                  className={isHighlighted ? "graph-prose-highlight" : ""}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSentenceDrag({ blockId: block.id, sentenceIndex: index });
+                  }}
+                >
+                  {text}
                   {ref && (
                     <span className="bullet-ref" title={`${ref.targetName} (L${ref.lineStart}-${ref.lineEnd})`}>
                       {ref.targetName} L{ref.lineStart}
                     </span>
                   )}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+                </p>
+              );
+            })}
+          </div>
+        )}
 
         <div className="graph-analysis-actions">
           {block.codeSnippet && (
@@ -326,20 +433,46 @@ export function CallGraphView({
     );
   }
 
+  function renderTreeNode(node: CallGraphNode): React.JSX.Element {
+    const isSelected = selected.id === node.id;
+    const hasChildren = node.children.length > 0;
+
+    return (
+      <div key={node.id} className={`call-tree-item ${hasChildren ? "call-tree-branch" : ""}`}>
+        <button
+          type="button"
+          className={`call-tree-node ${isSelected ? "call-tree-node-selected" : ""}`}
+          ref={(element) => {
+            if (element) nodeRefs.current.set(node.id, element);
+            else nodeRefs.current.delete(node.id);
+          }}
+          onClick={() => setSelectedNodeId(node.id)}
+          title={`${node.signature || nodeLabel(node)} · ${node.filename}: ${node.lineRange.start}-${node.lineRange.end}`}
+        >
+          <span className={`fn-icon ${nodeIconClass(node)}`}>{nodeIcon(node)}</span>
+          <span className="call-tree-text">
+            <span className="call-tree-name">{nodeLabel(node)}</span>
+            {nodeArguments(node) && <span className="call-tree-args">args: {nodeArguments(node)}</span>}
+            <span className="call-tree-meta">
+              {nodeTypeLabel(node)} · L{node.lineRange.start}-{node.lineRange.end}
+            </span>
+          </span>
+          {hasChildren && <span className="flow-node-count">{node.children.length}</span>}
+        </button>
+        {hasChildren && (
+          <div className="call-tree-children">
+            {node.children.map((child) => renderTreeNode(child))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <section>
       <div className="section-label">Call graph</div>
       <div className="graph-area graph-flow-area">
-        <div className="graph-header graph-file-header">
-          <span className="graph-count">{nodeCount} nodes</span>
-          {selectedFile.relatedFiles.length > 0 && (
-            <span className="graph-related-files">
-              includes {selectedFile.relatedFiles.length} files
-            </span>
-          )}
-        </div>
-
-        <div className="graph-file-tabs" role="tablist" aria-label="Call graph files">
+        <div className="graph-file-tabs graph-file-tabs-vscode" role="tablist" aria-label="Call graph files">
           {graphFiles.map((file) => (
             <button
               key={file.id}
@@ -348,57 +481,101 @@ export function CallGraphView({
               onClick={() => selectFile(file)}
               title={file.filename}
             >
-              <span>{file.title}</span>
+              <span className="file-tab-icon">{file.filename.endsWith(".ts") || file.filename.endsWith(".tsx") ? "TS" : "F"}</span>
+              <span className="file-tab-name">{file.filename.split("/").pop() ?? file.filename}</span>
             </button>
           ))}
         </div>
 
-        <div className="flow-graph" role="tree" aria-label="Call graph flow">
-          {levels.map((level, depth) => (
-            <div key={depth} className="flow-level">
-              {depth > 0 && <div className="flow-level-connector" aria-hidden="true" />}
-              <div className="flow-node-row">
-                {level.map(({ node }) => (
-                  <button
-                    key={node.id}
-                    type="button"
-                    className={`flow-node ${selected.id === node.id ? "flow-node-selected" : ""}`}
-                    onClick={() => setSelectedNodeId(node.id)}
-                    title={`${node.filename}: ${node.lineRange.start}-${node.lineRange.end}`}
-                  >
-                    <span className="flow-node-type">{node.type.slice(0, 1).toUpperCase()}</span>
-                    <span className="flow-node-name">{nodeLabel(node)}</span>
-                    {node.children.length > 0 && (
-                      <span className="flow-node-count">{node.children.length}</span>
-                    )}
-                  </button>
-                ))}
+        <div className="graph-workspace">
+          <div className="graph-diagram-pane">
+            <div className="graph-header graph-file-header">
+              <strong className="graph-file-analysis-title">{selectedFile.title}</strong>
+              <div className="graph-file-meta">
+                <span className="graph-count">{nodeCount} nodes</span>
+                {selectedFile.relatedFiles.length > 0 && (
+                  <span className="graph-related-files">
+                    includes {selectedFile.relatedFiles.length} files
+                  </span>
+                )}
               </div>
             </div>
-          ))}
+            <div className="call-tree" ref={treeRef} role="tree" aria-label="Call graph flow">
+              {graphCanvasSize.width > 0 && (
+                <svg
+                  className="call-tree-edges"
+                  width={graphCanvasSize.width}
+                  height={graphCanvasSize.height}
+                  viewBox={`0 0 ${graphCanvasSize.width} ${graphCanvasSize.height}`}
+                  aria-hidden="true"
+                >
+                  <defs>
+                    <marker
+                      id="call-tree-arrow"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="7"
+                      markerHeight="7"
+                      orient="auto"
+                    >
+                      <path d="M 0 0 L 8 4 L 0 8 z" />
+                    </marker>
+                    <marker
+                      id="call-tree-arrow-active"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="7"
+                      markerHeight="7"
+                      orient="auto"
+                    >
+                      <path d="M 0 0 L 8 4 L 0 8 z" />
+                    </marker>
+                  </defs>
+                  {graphEdges.map((edge) => {
+                    const active = edge.parentId === selected.id || edge.childId === selected.id;
+                    return (
+                      <path
+                        key={edge.id}
+                        className={`call-tree-edge ${active ? "call-tree-edge-active" : ""}`}
+                        d={edge.path}
+                        markerEnd={`url(#${active ? "call-tree-arrow-active" : "call-tree-arrow"})`}
+                      />
+                    );
+                  })}
+                </svg>
+              )}
+              {renderTreeNode(selectedFile.root)}
+            </div>
+          </div>
+
+          <aside className="flow-detail">
+            <div className="flow-detail-eyebrow">선택 노드 상세</div>
+            <div className="flow-detail-title">
+              <strong>{nodeLabel(selected)}</strong>
+              <span>{selected.filename} L{selected.lineRange.start}-{selected.lineRange.end}</span>
+            </div>
+            {nodeArguments(selected) && (
+              <div className="flow-detail-signature">args: {nodeArguments(selected)}</div>
+            )}
+            {selected.summary && <p>{selected.summary}</p>}
+            {selected.bulletPoints.length > 0 && (
+              <ul className="node-detail-bullets">
+                {selected.bulletPoints.map((point, index) => (
+                  <li key={index}>{point}</li>
+                ))}
+              </ul>
+            )}
+          </aside>
         </div>
 
-        <aside className="flow-detail">
-          <div className="flow-detail-title">
-            <strong>{nodeLabel(selected)}</strong>
-            <span>{selected.filename} L{selected.lineRange.start}-{selected.lineRange.end}</span>
+        {visibleBlocks.length > 0 && (
+          <div className="graph-analysis-panel graph-analysis-panel-below">
+            <div className="graph-analysis-title">In-depth snippet analysis</div>
+            {visibleBlocks.map((block) => renderSummaryBlock(block))}
           </div>
-          {selected.summary && <p>{selected.summary}</p>}
-          {selected.bulletPoints.length > 0 && (
-            <ul className="node-detail-bullets">
-              {selected.bulletPoints.map((point, index) => (
-                <li key={index}>{point}</li>
-              ))}
-            </ul>
-          )}
-
-          {visibleBlocks.length > 0 && (
-            <div className="graph-analysis-panel">
-              <div className="graph-analysis-title">선택 노드 상세</div>
-              {visibleBlocks.map((block) => renderSummaryBlock(block))}
-            </div>
-          )}
-        </aside>
+        )}
       </div>
     </section>
   );

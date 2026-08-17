@@ -17,7 +17,7 @@ export class LLMClient {
 
   public async analyze(diff: PRDiffResult, config: LLMConfig): Promise<LLMResponse> {
     const log = getLogger();
-    const prompt = buildAnalysisPrompt(diff, config.language);
+    const prompt = buildAnalysisPrompt(diff, config.language, config.additionalSystemPrompt);
     log.appendLine(`[LLM] Provider: ${config.provider}`);
     log.appendLine(`[LLM] Prompt length: ${prompt.length} chars`);
 

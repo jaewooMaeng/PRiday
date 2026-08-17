@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
 import { AnalysisEngine, type AnalysisResult } from "../analysis/AnalysisEngine";
 import { GitHubClient } from "../github/GitHubClient";
+import {
+  GITHUB_TOKEN_KEY,
+  getOrCreateGitHubToken,
+} from "../github/auth";
 import { LLMClient } from "../llm/LLMClient";
 import type { PRDiffResult } from "../types/github";
 import type { LLMConfig, LLMProvider, UILanguage } from "../types/llm";
@@ -9,7 +13,6 @@ import { startTimer } from "../utils/timer";
 import { WebviewProvider } from "../webview/WebviewProvider";
 import { EditorController } from "../editor/EditorController";
 
-const GITHUB_TOKEN_KEY = "aiPrInsight.githubToken";
 const GEMINI_API_KEY = "aiPrInsight.geminiApiKey";
 const CLAUDE_API_KEY = "aiPrInsight.claudeApiKey";
 const OPENAI_API_KEY = "aiPrInsight.openaiApiKey";
@@ -21,7 +24,7 @@ interface ModelOption {
 
 const CUSTOM_MODEL_OPTION = "$(edit) 직접 입력";
 
-interface RepoInput {
+export interface RepoInput {
   owner: string;
   repo: string;
 }
@@ -35,18 +38,6 @@ interface AnalysisSession {
 }
 
 let session: AnalysisSession | undefined;
-
-export async function setGitHubTokenCommand(context: vscode.ExtensionContext): Promise<void> {
-  const token = await vscode.window.showInputBox({
-    title: "GitHub Personal Access Token",
-    prompt: "GitHub PAT를 입력하세요 (repo scope 권장)",
-    password: true,
-    ignoreFocusOut: true,
-  });
-  if (!token) return;
-  await context.secrets.store(GITHUB_TOKEN_KEY, token.trim());
-  vscode.window.showInformationMessage("GitHub 토큰을 안전하게 저장했습니다.");
-}
 
 async function setGeminiApiKeyCommand(context: vscode.ExtensionContext): Promise<void> {
   const apiKey = await vscode.window.showInputBox({
@@ -158,20 +149,36 @@ export async function analyzePRCommand(
   webviewProvider: WebviewProvider,
   editorController: EditorController
 ): Promise<void> {
-  const config = await loadLLMConfig(context);
   const repoInput = await askRepository();
   if (!repoInput) return;
   const prNumberText = await askPRNumber();
   if (!prNumberText) return;
 
-  webviewProvider.show(prNumberText);
+  await analyzeSelectedPR(
+    context,
+    webviewProvider,
+    editorController,
+    repoInput,
+    Number(prNumberText)
+  );
+}
+
+export async function analyzeSelectedPR(
+  context: vscode.ExtensionContext,
+  webviewProvider: WebviewProvider,
+  editorController: EditorController,
+  repoInput: RepoInput,
+  prNumber: number
+): Promise<void> {
+  const config = await loadLLMConfig(context);
+  webviewProvider.show(String(prNumber));
   webviewProvider.postLLMConfig(config);
   await runFullAnalysis({
     context,
     webviewProvider,
     editorController,
     repoInput,
-    prNumber: Number(prNumberText),
+    prNumber,
   });
 }
 
@@ -188,7 +195,7 @@ export async function runFullAnalysis(input: RunInput): Promise<void> {
   const log = getLogger();
 
   try {
-    const token = await getOrCreateToken(context);
+    const token = await getOrCreateGitHubToken(context);
     if (!token) return;
 
     webviewProvider.postProgress("fetching_pr", 15);
@@ -282,8 +289,23 @@ export function bindWebviewHandlers(
         );
       }
     },
-    onReanalyze: async () => {
-      if (!session) return;
+    onReanalyze: async (payload) => {
+      await saveLLMConfig(payload.config);
+      if (payload.secrets?.llmApiKey?.trim()) {
+        const keyName = getApiKeySecretName(payload.config.provider);
+        if (keyName) {
+          await context.secrets.store(keyName, payload.secrets.llmApiKey.trim());
+        }
+      }
+      if (payload.secrets?.githubToken?.trim()) {
+        await context.secrets.store(GITHUB_TOKEN_KEY, payload.secrets.githubToken.trim());
+      }
+      const updated = await loadLLMConfig(context);
+      webviewProvider.postLLMConfig(updated);
+      if (!session) {
+        webviewProvider.postError("재분석할 PR 세션이 없습니다. 먼저 PR 분석을 실행해주세요.");
+        return;
+      }
       await runFullAnalysis({
         context,
         webviewProvider,
@@ -296,16 +318,19 @@ export function bindWebviewHandlers(
       editorController.clearHighlights();
     },
     onChat: async (payload) => {
+      let modelLabel: string | undefined;
       try {
         const config = await loadLLMConfig(context);
+        modelLabel = getConfiguredModel(config);
         const analysisContext = session
           ? buildRichChatContext(session)
           : "No analysis context available.";
         const response = await llm.chat(payload.message, analysisContext, config);
-        webviewProvider.postChatResponse(response);
+        webviewProvider.postChatResponse(response, modelLabel);
       } catch (err) {
         webviewProvider.postChatResponse(
-          `Error: ${err instanceof Error ? err.message : "Unknown error"}`
+          `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
+          modelLabel
         );
       }
     },
@@ -454,6 +479,13 @@ function getProviderLabel(provider: LLMProvider): string {
   return "Ollama";
 }
 
+function getConfiguredModel(config: LLMConfig): string {
+  if (config.provider === "chatgpt") return config.chatgptModel ?? "gpt-5.5";
+  if (config.provider === "gemini") return config.geminiModel ?? "gemini-2.5-flash";
+  if (config.provider === "claude") return config.claudeModel ?? "claude-sonnet-4-20250514";
+  return config.ollamaModel ?? "llama3";
+}
+
 function getModelSettingName(provider: LLMProvider): keyof LLMConfig {
   if (provider === "chatgpt") return "chatgptModel";
   if (provider === "gemini") return "geminiModel";
@@ -500,20 +532,6 @@ async function askPRNumber(): Promise<string | undefined> {
   });
 }
 
-async function getOrCreateToken(context: vscode.ExtensionContext): Promise<string | undefined> {
-  const existingToken = await context.secrets.get(GITHUB_TOKEN_KEY);
-  if (existingToken) return existingToken;
-  const token = await vscode.window.showInputBox({
-    title: "GitHub Personal Access Token",
-    prompt: "GitHub PAT를 입력해주세요",
-    password: true,
-    ignoreFocusOut: true,
-  });
-  if (!token) return undefined;
-  await context.secrets.store(GITHUB_TOKEN_KEY, token.trim());
-  return token.trim();
-}
-
 async function loadLLMConfig(context: vscode.ExtensionContext): Promise<LLMConfig> {
   const conf = vscode.workspace.getConfiguration("aiPrInsight.llm");
   const provider = conf.get<LLMProvider>("provider", "gemini");
@@ -532,6 +550,7 @@ async function loadLLMConfig(context: vscode.ExtensionContext): Promise<LLMConfi
     openaiApiKey: openaiApiKey ?? undefined,
     chatgptModel: conf.get<string>("chatgptModel", "gpt-5.5"),
     language: conf.get<UILanguage>("language", "ko"),
+    additionalSystemPrompt: conf.get<string>("additionalSystemPrompt", ""),
     hasGeminiApiKey: !!geminiApiKey,
     hasClaudeApiKey: !!claudeApiKey,
     hasOpenAIApiKey: !!openaiApiKey,
@@ -590,5 +609,12 @@ async function saveLLMConfig(config: LLMConfig): Promise<void> {
   }
   if (config.language) {
     await conf.update("language", config.language, vscode.ConfigurationTarget.Global);
+  }
+  if (config.additionalSystemPrompt !== undefined) {
+    await conf.update(
+      "additionalSystemPrompt",
+      config.additionalSystemPrompt.trim(),
+      vscode.ConfigurationTarget.Workspace
+    );
   }
 }

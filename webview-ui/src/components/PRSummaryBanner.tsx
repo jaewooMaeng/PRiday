@@ -7,7 +7,7 @@ interface Props {
   files?: PRFileInfo[];
 }
 
-export function PRSummaryBanner({ text, prMeta, files }: Props): JSX.Element {
+export function PRSummaryBanner({ text, prMeta, files }: Props): React.JSX.Element {
   const totalAdd = files?.reduce((s, f) => s + f.additions, 0) ?? 0;
   const totalDel = files?.reduce((s, f) => s + f.deletions, 0) ?? 0;
 

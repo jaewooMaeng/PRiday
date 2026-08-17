@@ -1,5 +1,10 @@
 import { Octokit } from "@octokit/rest";
-import type { PRComment, PRDiffResult, PRFile } from "../types/github";
+import type {
+  PRComment,
+  PRDiffResult,
+  PRFile,
+  PullRequestListItem,
+} from "../types/github";
 
 interface PullFileResponse {
   filename: string;
@@ -28,6 +33,31 @@ export class GitHubClient {
 
   constructor(token: string) {
     this.octokit = new Octokit({ auth: token });
+  }
+
+  public async listOpenPullRequests(
+    owner: string,
+    repo: string
+  ): Promise<PullRequestListItem[]> {
+    const pulls = await this.octokit.paginate(this.octokit.pulls.list, {
+      owner,
+      repo,
+      state: "open",
+      sort: "updated",
+      direction: "desc",
+      per_page: 100,
+    });
+
+    return pulls.map((pull) => ({
+      number: pull.number,
+      title: pull.title,
+      author: pull.user?.login ?? "unknown",
+      isDraft: pull.draft ?? false,
+      headBranch: pull.head.ref,
+      baseBranch: pull.base.ref,
+      updatedAt: pull.updated_at,
+      url: pull.html_url,
+    }));
   }
 
   public async fetchPRDiff(

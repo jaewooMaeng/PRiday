@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { LLMConfigPayload, LLMProvider, UILanguage } from "../types/messages";
+import { selectedModelName } from "../utils/llmDisplay";
 
 const PROVIDER_OPTIONS: Array<{ value: LLMProvider; label: string; icon: string }> = [
   { value: "chatgpt", label: "OpenAI", icon: "AI" },
@@ -20,14 +21,9 @@ interface Props {
   connected: boolean;
   onClose: () => void;
   onSave: (config: LLMConfigPayload, secrets: { llmApiKey?: string; githubToken?: string }) => void;
+  onReanalyze: (config: LLMConfigPayload, secrets: { llmApiKey?: string; githubToken?: string }) => void;
   onTestConnection: (config: LLMConfigPayload) => void;
-}
-
-function modelFor(config: LLMConfigPayload): string {
-  if (config.provider === "chatgpt") return config.chatgptModel ?? "gpt-5.5";
-  if (config.provider === "claude") return config.claudeModel ?? "claude-sonnet-4-20250514";
-  if (config.provider === "gemini") return config.geminiModel ?? "gemini-2.5-flash";
-  return config.ollamaModel ?? "llama3";
+  canReanalyze: boolean;
 }
 
 function hasProviderKey(config: LLMConfigPayload): boolean {
@@ -49,8 +45,10 @@ export function LLMSettingsPanel({
   connected,
   onClose,
   onSave,
+  onReanalyze,
   onTestConnection,
-}: Props): JSX.Element {
+  canReanalyze,
+}: Props): React.JSX.Element {
   const [draft, setDraft] = useState<LLMConfigPayload>(config);
   const [llmApiKey, setLlmApiKey] = useState("");
   const [githubToken, setGithubToken] = useState("");
@@ -62,7 +60,7 @@ export function LLMSettingsPanel({
     setGithubToken("");
   }, [config]);
 
-  const currentModel = modelFor(draft);
+  const currentModel = selectedModelName(draft);
   const modelOptions = useMemo(() => MODEL_OPTIONS[draft.provider], [draft.provider]);
   const providerKeyConfigured = hasProviderKey(draft) || llmApiKey.trim().length > 0;
   const githubConfigured = !!draft.hasGitHubToken || githubToken.trim().length > 0;
@@ -80,10 +78,19 @@ export function LLMSettingsPanel({
   }
 
   function save(): void {
-    onSave(draft, {
+    onSave(draft, currentSecrets());
+    onClose();
+  }
+
+  function currentSecrets(): { llmApiKey?: string; githubToken?: string } {
+    return {
       llmApiKey: llmApiKey.trim() || undefined,
       githubToken: githubToken.trim() || undefined,
-    });
+    };
+  }
+
+  function reanalyze(): void {
+    onReanalyze(draft, currentSecrets());
     onClose();
   }
 
@@ -211,6 +218,23 @@ export function LLMSettingsPanel({
                 </select>
               </div>
             </div>
+            <label className="field-label" htmlFor="additional-system-prompt">
+              추가 분석 기준
+            </label>
+            <textarea
+              id="additional-system-prompt"
+              className="input settings-prompt-input"
+              value={draft.additionalSystemPrompt ?? ""}
+              onChange={(event) => setDraft((prev) => ({
+                ...prev,
+                additionalSystemPrompt: event.target.value,
+              }))}
+              placeholder="예: Google MLIR 엔지니어의 관점에서 MLIR 문법 오류와 dialect 사용상의 문제를 설명해줘."
+              rows={5}
+            />
+            <p className="settings-field-help">
+              이 워크스페이스의 PR 분석에만 추가로 적용됩니다. Ask AI 대화에는 적용되지 않습니다.
+            </p>
             <div className="test-row">
               <button className="btn btn-secondary" type="button" onClick={testConnection} disabled={testing}>
                 {testing ? "테스트 중" : "연결 테스트"}
@@ -224,6 +248,15 @@ export function LLMSettingsPanel({
 
         <footer className="settings-footer">
           <button className="btn btn-secondary" type="button" onClick={onClose}>취소</button>
+          <button
+            className="btn btn-secondary"
+            type="button"
+            onClick={reanalyze}
+            disabled={!canReanalyze}
+            title={canReanalyze ? "설정을 저장하고 현재 PR을 다시 분석합니다" : "먼저 PR 분석을 실행해주세요"}
+          >
+            저장 후 재분석
+          </button>
           <button className="btn btn-primary" type="button" onClick={save}>저장</button>
         </footer>
       </section>

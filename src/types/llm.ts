@@ -15,6 +15,7 @@ export interface LLMConfig {
   openaiApiKey?: string;
   chatgptModel?: string;
   language?: UILanguage;
+  additionalSystemPrompt?: string;
   hasGeminiApiKey?: boolean;
   hasClaudeApiKey?: boolean;
   hasOpenAIApiKey?: boolean;

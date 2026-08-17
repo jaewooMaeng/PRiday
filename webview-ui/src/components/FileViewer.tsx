@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import type { PRFileInfo, LineRange } from "../types/messages";
+import { parseUnifiedDiff, type DeletedGroup } from "../utils/diff";
 
 interface Props {
   files: PRFileInfo[];
@@ -13,79 +14,13 @@ interface Props {
   }) => void;
 }
 
-interface DeletedGroup {
-  id: string;
-  beforeLine: number | null;
-  afterLine: number;
-  oldStart: number;
-  lines: string[];
-}
-
-interface DiffMeta {
-  addedLines: Set<number>;
-  deletedGroups: DeletedGroup[];
-}
-
-function parseUnifiedDiff(patch: string): DiffMeta {
-  const addedLines = new Set<number>();
-  const deletedGroups: DeletedGroup[] = [];
-  const patchLines = patch.split("\n");
-  let oldLine = 0;
-  let newLine = 0;
-  let pending: { oldStart: number; lines: string[] } | null = null;
-
-  function flush(beforeLine: number | null): void {
-    if (!pending || pending.lines.length === 0) return;
-    deletedGroups.push({
-      id: `${pending.oldStart}-${deletedGroups.length}`,
-      beforeLine,
-      afterLine: beforeLine == null ? newLine : Math.max(0, beforeLine - 1),
-      oldStart: pending.oldStart,
-      lines: pending.lines,
-    });
-    pending = null;
-  }
-
-  for (const line of patchLines) {
-    const hunk = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-    if (hunk) {
-      flush(newLine + 1);
-      oldLine = Number(hunk[1]);
-      newLine = Number(hunk[2]);
-      continue;
-    }
-    if (line.startsWith("+++") || line.startsWith("---")) continue;
-
-    if (line.startsWith("-")) {
-      if (!pending) pending = { oldStart: oldLine, lines: [] };
-      pending.lines.push(line.slice(1));
-      oldLine += 1;
-      continue;
-    }
-
-    flush(newLine);
-    if (line.startsWith("+")) {
-      addedLines.add(newLine);
-      newLine += 1;
-      continue;
-    }
-    if (line.startsWith(" ")) {
-      oldLine += 1;
-      newLine += 1;
-    }
-  }
-
-  flush(null);
-  return { addedLines, deletedGroups };
-}
-
 export function FileViewer({
   files,
   selectedFile,
   onSelectFile,
   highlightRange,
   onRequestComment,
-}: Props): JSX.Element {
+}: Props): React.JSX.Element {
   const codeRef = useRef<HTMLDivElement>(null);
   const [commentPopup, setCommentPopup] = useState<{
     text: string;
@@ -96,6 +31,11 @@ export function FileViewer({
   } | null>(null);
   const [commentText, setCommentText] = useState("");
   const [expandedDeletions, setExpandedDeletions] = useState<Set<string>>(new Set());
+  const [scrollMetrics, setScrollMetrics] = useState({
+    scrollTop: 0,
+    scrollHeight: 1,
+    clientHeight: 1,
+  });
 
   const currentFile = useMemo(
     () => files.find((f) => f.filename === selectedFile) ?? null,
@@ -129,6 +69,38 @@ export function FileViewer({
     );
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [highlightRange]);
+
+  useEffect(() => {
+    const element = codeRef.current;
+    if (!element) return;
+
+    const update = () => {
+      setScrollMetrics({
+        scrollTop: element.scrollTop,
+        scrollHeight: Math.max(1, element.scrollHeight),
+        clientHeight: Math.max(1, element.clientHeight),
+      });
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    element.addEventListener("scroll", update, { passive: true });
+    update();
+    const frame = window.requestAnimationFrame(update);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      element.removeEventListener("scroll", update);
+    };
+  }, [currentFile, expandedDeletions]);
+
+  function seekFromRuler(clientY: number, target: HTMLDivElement): void {
+    const element = codeRef.current;
+    if (!element) return;
+    const rect = target.getBoundingClientRect();
+    const fraction = Math.min(1, Math.max(0, (clientY - rect.top) / Math.max(1, rect.height)));
+    element.scrollTop = fraction * Math.max(0, element.scrollHeight - element.clientHeight);
+  }
 
   function handleCodeMouseUp(e: React.MouseEvent): void {
     const selection = window.getSelection();
@@ -178,7 +150,7 @@ export function FileViewer({
     });
   }
 
-  function renderDeletedGroup(group: DeletedGroup): JSX.Element {
+  function renderDeletedGroup(group: DeletedGroup): React.JSX.Element {
     const isOpen = expandedDeletions.has(group.id);
     return (
       <div key={group.id} className="deleted-group">
@@ -247,29 +219,86 @@ export function FileViewer({
               <span className="file-comment-hint">코드를 드래그하여 PR 코멘트 작성</span>
             )}
           </div>
-          <div className="file-code-container" ref={codeRef} onMouseUp={handleCodeMouseUp}>
-            {(deletionsByBeforeLine.get(1) ?? []).map(renderDeletedGroup)}
-            {lines.map((line, idx) => {
-              const lineNum = idx + 1;
-              const isHighlighted =
-                highlightRange != null &&
-                lineNum >= highlightRange.start &&
-                lineNum <= highlightRange.end;
-              const isAdded = diffMeta.addedLines.has(lineNum);
-              return (
-                <React.Fragment key={idx}>
-                  {lineNum > 1 && (deletionsByBeforeLine.get(lineNum) ?? []).map(renderDeletedGroup)}
-                  <div
-                    className={`file-line ${isHighlighted ? "file-line-hl" : ""} ${isAdded ? "file-line-add" : ""}`}
-                    data-line={lineNum}
-                  >
-                    <span className="file-line-num">{lineNum}</span>
-                    <span className="file-line-content">{isAdded ? `+ ${line || " "}` : line || " "}</span>
-                  </div>
-                </React.Fragment>
-              );
-            })}
-            {(deletionsByBeforeLine.get(null) ?? []).map(renderDeletedGroup)}
+          <div className="file-code-shell">
+            <div className="file-code-container" ref={codeRef} onMouseUp={handleCodeMouseUp}>
+              {(deletionsByBeforeLine.get(1) ?? []).map(renderDeletedGroup)}
+              {lines.map((line, idx) => {
+                const lineNum = idx + 1;
+                const isHighlighted =
+                  highlightRange != null &&
+                  lineNum >= highlightRange.start &&
+                  lineNum <= highlightRange.end;
+                const isAdded = diffMeta.addedLines.has(lineNum);
+                return (
+                  <React.Fragment key={idx}>
+                    {lineNum > 1 && (deletionsByBeforeLine.get(lineNum) ?? []).map(renderDeletedGroup)}
+                    <div
+                      className={`file-line ${isHighlighted ? "file-line-hl" : ""} ${isAdded ? "file-line-add" : ""}`}
+                      data-line={lineNum}
+                    >
+                      <span className="file-line-num">{lineNum}</span>
+                      <span className="file-line-content">{isAdded ? `+ ${line || " "}` : line || " "}</span>
+                    </div>
+                  </React.Fragment>
+                );
+              })}
+              {(deletionsByBeforeLine.get(null) ?? []).map(renderDeletedGroup)}
+            </div>
+            <div
+              className="diff-overview-ruler"
+              role="scrollbar"
+              aria-label={`${currentFile.filename} 변경 위치`}
+              aria-orientation="vertical"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(
+                (scrollMetrics.scrollTop /
+                  Math.max(1, scrollMetrics.scrollHeight - scrollMetrics.clientHeight)) * 100
+              )}
+              tabIndex={0}
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture(event.pointerId);
+                seekFromRuler(event.clientY, event.currentTarget);
+              }}
+              onPointerMove={(event) => {
+                if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                  seekFromRuler(event.clientY, event.currentTarget);
+                }
+              }}
+              onKeyDown={(event) => {
+                const element = codeRef.current;
+                if (!element || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
+                event.preventDefault();
+                element.scrollTop += (event.key === "ArrowUp" ? -1 : 1) * element.clientHeight * 0.8;
+              }}
+            >
+              <div
+                className="diff-overview-viewport"
+                style={{
+                  top: `${(scrollMetrics.scrollTop / scrollMetrics.scrollHeight) * 100}%`,
+                  height: `${Math.min(100, (scrollMetrics.clientHeight / scrollMetrics.scrollHeight) * 100)}%`,
+                }}
+              />
+              {[...diffMeta.addedLines].map((line) => (
+                <span
+                  key={`add-${line}`}
+                  className="diff-overview-marker diff-overview-add"
+                  style={{ top: `${((line - 1) / Math.max(1, lines.length - 1)) * 100}%` }}
+                  title={`추가: L${line}`}
+                />
+              ))}
+              {diffMeta.deletedGroups.map((group) => {
+                const line = group.beforeLine ?? Math.max(1, lines.length);
+                return (
+                  <span
+                    key={`del-${group.id}`}
+                    className="diff-overview-marker diff-overview-del"
+                    style={{ top: `${((line - 1) / Math.max(1, lines.length - 1)) * 100}%` }}
+                    title={`삭제: 이전 L${group.oldStart}부터 ${group.lines.length}줄`}
+                  />
+                );
+              })}
+            </div>
           </div>
         </>
       ) : (

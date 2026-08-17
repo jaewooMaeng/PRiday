@@ -2,6 +2,17 @@ import * as vscode from "vscode";
 import type { LLMConfig } from "../types/llm";
 import type { AnalysisResult } from "../analysis/AnalysisEngine";
 
+type SecretUpdate = {
+  provider?: LLMConfig["provider"];
+  llmApiKey?: string;
+  githubToken?: string;
+};
+
+type ReanalyzePayload = {
+  config: LLMConfig;
+  secrets?: SecretUpdate;
+};
+
 type MessageHandler = {
   onHighlightCode: (payload: {
     filename: string;
@@ -10,13 +21,9 @@ type MessageHandler = {
     confidence?: number;
   }) => void | Promise<void>;
   onUpdateLLMConfig: (payload: LLMConfig) => void | Promise<void>;
-  onUpdateSecrets: (payload: {
-    provider?: LLMConfig["provider"];
-    llmApiKey?: string;
-    githubToken?: string;
-  }) => void | Promise<void>;
+  onUpdateSecrets: (payload: SecretUpdate) => void | Promise<void>;
   onTestConnection: (payload: LLMConfig) => void | Promise<void>;
-  onReanalyze: () => void | Promise<void>;
+  onReanalyze: (payload: ReanalyzePayload) => void | Promise<void>;
   onClearHighlight: () => void | Promise<void>;
   onChat: (payload: { message: string }) => void | Promise<void>;
   onPostComment: (payload: {
@@ -39,6 +46,7 @@ export class WebviewProvider {
 
   public show(prNumber: string): vscode.WebviewPanel {
     if (this.panel) {
+      this.panel.title = `AI PR Insight: PR #${prNumber}`;
       this.panel.reveal(vscode.ViewColumn.Beside);
       return this.panel;
     }
@@ -101,10 +109,10 @@ export class WebviewProvider {
     });
   }
 
-  public postChatResponse(message: string): void {
+  public postChatResponse(message: string, modelLabel?: string): void {
     this.panel?.webview.postMessage({
       type: "chatResponse",
-      payload: { message },
+      payload: { message, modelLabel },
     });
   }
 
@@ -139,7 +147,7 @@ export class WebviewProvider {
         void this.handlers.onTestConnection(event.payload as LLMConfig);
         break;
       case "reanalyze":
-        void this.handlers.onReanalyze();
+        void this.handlers.onReanalyze(event.payload as ReanalyzePayload);
         break;
       case "clearHighlight":
         void this.handlers.onClearHighlight();

@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { CallGraphView } from "./components/CallGraphView";
 import { ChatPanel } from "./components/ChatPanel";
 import { FileViewer } from "./components/FileViewer";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
 import { PRSummaryBanner } from "./components/PRSummaryBanner";
 import { ProgressOverlay } from "./components/ProgressOverlay";
-import { StepByStepAnalysis } from "./components/StepByStepAnalysis";
 import { useMapping } from "./hooks/useMapping";
 import { useVSCodeAPI } from "./hooks/useVSCodeAPI";
+import { selectedModelName } from "./utils/llmDisplay";
 import type {
   AnalysisResultPayload,
   ChatMessage,
@@ -26,9 +26,10 @@ const DEFAULT_LLM_CONFIG: LLMConfigPayload = {
   ollamaEndpoint: "http://localhost:11434",
   ollamaModel: "llama3",
   language: "ko",
+  additionalSystemPrompt: "",
 };
 
-export function App(): JSX.Element {
+export function App(): React.JSX.Element {
   const [analysis, setAnalysis] = useState<AnalysisResultPayload | null>(null);
   const [llmConfig, setLlmConfig] = useState<LLMConfigPayload>(DEFAULT_LLM_CONFIG);
   const [connectionOk, setConnectionOk] = useState(false);
@@ -39,12 +40,15 @@ export function App(): JSX.Element {
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [chatVisible, setChatVisible] = useState(true);
   const [chatExpanded, setChatExpanded] = useState(false);
+  const [chatHeight, setChatHeight] = useState(300);
+  const [chatResizing, setChatResizing] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [fileHighlight, setFileHighlight] = useState<LineRange | null>(null);
+  const chatResizeStart = useRef({ pointerY: 0, height: 300 });
 
   const mappingTable = analysis?.mappingTable ?? [];
   const { highlighted, setHighlighted, findBest } = useMapping(mappingTable);
@@ -98,10 +102,15 @@ export function App(): JSX.Element {
           break;
         }
         case "chatResponse": {
-          const payload = event.payload as { message: string };
+          const payload = event.payload as { message: string; modelLabel?: string };
           setChatMessages((prev) => [
             ...prev,
-            { role: "assistant", content: payload.message, timestamp: Date.now() },
+            {
+              role: "assistant",
+              content: payload.message,
+              timestamp: Date.now(),
+              modelLabel: payload.modelLabel,
+            },
           ]);
           setChatLoading(false);
           break;
@@ -192,12 +201,56 @@ export function App(): JSX.Element {
     }
   }
 
+  function handleReanalyze(
+    config: LLMConfigPayload,
+    secrets: { llmApiKey?: string; githubToken?: string }
+  ): void {
+    setLlmConfig(config);
+    setLanguage(config.language ?? "ko");
+    setError(null);
+    setStage("preparing_reanalysis");
+    setProgress(1);
+    postMessage({
+      type: "reanalyze",
+      payload: { config, secrets },
+    });
+  }
+
   function dismissOverlay(): void {
     setError(null);
     if (progress < 100) setProgress(100);
   }
 
+  function handleChatResizeStart(event: React.PointerEvent<HTMLDivElement>): void {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    chatResizeStart.current = { pointerY: event.clientY, height: chatHeight };
+    setChatResizing(true);
+  }
+
+  function maxChatHeight(): number {
+    return Math.max(220, Math.floor(window.innerHeight * 0.75));
+  }
+
+  function clampChatHeight(height: number): number {
+    return Math.min(maxChatHeight(), Math.max(180, height));
+  }
+
+  function handleChatResizeMove(event: React.PointerEvent<HTMLDivElement>): void {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    const delta = chatResizeStart.current.pointerY - event.clientY;
+    setChatHeight(clampChatHeight(chatResizeStart.current.height + delta));
+  }
+
+  function handleChatResizeEnd(event: React.PointerEvent<HTMLDivElement>): void {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setChatResizing(false);
+  }
+
   const showOverlay = (progress >= 0 && progress < 100) || !!error;
+  const modelLabel = selectedModelName(llmConfig);
 
   return (
     <div className="app-root">
@@ -266,13 +319,6 @@ export function App(): JSX.Element {
                   onSentenceDrag={handleSentenceDrag}
                   onBlockClick={handleBlockClick}
                 />
-                <StepByStepAnalysis
-                  blocks={analysis.summaryBlocks}
-                  activeBlockId={activeBlockId}
-                  highlightedSentence={highlighted}
-                  onSentenceDrag={handleSentenceDrag}
-                  onBlockClick={handleBlockClick}
-                />
               </>
             ) : (
               <section className="card empty-state">
@@ -304,12 +350,48 @@ export function App(): JSX.Element {
 
       {/* Chat (bottom, always-on bar or expandable) */}
       {chatVisible && (
-        <div className={`chat-drawer ${chatExpanded ? "chat-drawer-expanded" : "chat-drawer-collapsed"}`}>
+        <div
+          className={`chat-drawer ${chatExpanded ? "chat-drawer-expanded" : "chat-drawer-collapsed"} ${chatResizing ? "chat-drawer-resizing" : ""}`}
+          style={chatExpanded ? { height: chatHeight } : undefined}
+        >
+          {chatExpanded && (
+            <div
+              className="chat-resize-handle"
+              role="separator"
+              aria-label="채팅창 높이 조절"
+              aria-orientation="horizontal"
+              aria-valuemin={180}
+              aria-valuemax={maxChatHeight()}
+              aria-valuenow={chatHeight}
+              tabIndex={0}
+              title="드래그하여 채팅창 높이 조절"
+              onPointerDown={handleChatResizeStart}
+              onPointerMove={handleChatResizeMove}
+              onPointerUp={handleChatResizeEnd}
+              onPointerCancel={handleChatResizeEnd}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                  event.preventDefault();
+                  setChatHeight((height) => clampChatHeight(
+                    height + (event.key === "ArrowUp" ? 24 : -24)
+                  ));
+                } else if (event.key === "Home") {
+                  event.preventDefault();
+                  setChatHeight(180);
+                } else if (event.key === "End") {
+                  event.preventDefault();
+                  setChatHeight(maxChatHeight());
+                }
+              }}
+              onDoubleClick={() => setChatHeight(300)}
+            />
+          )}
           <ChatPanel
             messages={chatMessages}
             onSend={handleChatSend}
             loading={chatLoading}
             expanded={chatExpanded}
+            modelLabel={modelLabel}
             onToggleExpand={() => setChatExpanded((prev) => !prev)}
           />
         </div>
@@ -327,8 +409,10 @@ export function App(): JSX.Element {
         <LLMSettingsPanel
           config={{ ...llmConfig, language }}
           connected={connectionOk && !error}
+          canReanalyze={analysis != null}
           onClose={() => setSettingsOpen(false)}
           onSave={handleSettingsSave}
+          onReanalyze={handleReanalyze}
           onTestConnection={(config) => postMessage({ type: "testConnection", payload: config })}
         />
       )}

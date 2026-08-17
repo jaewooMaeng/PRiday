@@ -1333,7 +1333,7 @@
           return dispatcher;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React9 = require_react(), Internals = {
+        var React8 = require_react(), Internals = {
           d: {
             f: noop,
             r: function() {
@@ -1351,7 +1351,7 @@
           },
           p: 0,
           findDOMNode: null
-        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React9.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React8.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
         "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
           "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
         );
@@ -2886,7 +2886,7 @@
           "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
         }
         function validateOptionProps(element, props) {
-          null == props.value && ("object" === typeof props.children && null !== props.children ? React9.Children.forEach(props.children, function(child) {
+          null == props.value && ("object" === typeof props.children && null !== props.children ? React8.Children.forEach(props.children, function(child) {
             null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
               "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
             ));
@@ -18518,14 +18518,14 @@
           ));
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var Scheduler = require_scheduler(), React9 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
+        var Scheduler = require_scheduler(), React8 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
         /* @__PURE__ */ Symbol.for("react.scope");
         var REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity");
         /* @__PURE__ */ Symbol.for("react.legacy_hidden");
         /* @__PURE__ */ Symbol.for("react.tracing_marker");
         var REACT_MEMO_CACHE_SENTINEL = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel");
         /* @__PURE__ */ Symbol.for("react.view_transition");
-        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React9.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React8.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
           pending: false,
           data: null,
           method: null,
@@ -21313,7 +21313,7 @@
           }
         };
         (function() {
-          var isomorphicReactPackageVersion = React9.version;
+          var isomorphicReactPackageVersion = React8.version;
           if ("19.2.4" !== isomorphicReactPackageVersion)
             throw Error(
               'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.4\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -21486,16 +21486,12 @@
   function countNodes(node) {
     return 1 + node.children.reduce((sum, child) => sum + countNodes(child), 0);
   }
-  function flattenByDepth(root) {
-    const levels = [];
-    const visit = (node, depth) => {
-      const level = levels[depth] ?? [];
-      level.push({ node, depth });
-      levels[depth] = level;
-      node.children.forEach((child) => visit(child, depth + 1));
-    };
-    visit(root, 0);
-    return levels;
+  function collectEdges(node, out = []) {
+    node.children.forEach((child) => {
+      out.push([node, child]);
+      collectEdges(child, out);
+    });
+    return out;
   }
   function findNode(root, id) {
     if (root.id === id) return root;
@@ -21575,8 +21571,28 @@
     });
   }
   function nodeLabel(node) {
-    const signature = node.signature?.replace(/^[^(]*\(/, "").replace(/\)$/, "");
-    return signature ? `${node.name}(${signature})` : node.name;
+    return node.name.replace(/\(.*\)$/, "");
+  }
+  function nodeArguments(node) {
+    const match = node.signature?.match(/\((.*)\)/s);
+    return match?.[1]?.trim() ?? "";
+  }
+  function nodeTypeLabel(node) {
+    if (node.type === "module") return "Module";
+    if (node.type === "class") return "Class";
+    if (node.type === "method") return "Method";
+    return "Function";
+  }
+  function nodeIcon(node) {
+    if (node.type === "module") return "M";
+    if (node.type === "class") return "C";
+    if (node.type === "method") return "m";
+    return "f";
+  }
+  function nodeIconClass(node) {
+    if (node.type === "module") return "fn-icon-mod";
+    if (node.type === "class") return "fn-icon-dec";
+    return "fn-icon-fn";
   }
   function rangesOverlap(a, b) {
     return a.start <= b.end && b.start <= a.end;
@@ -21600,12 +21616,56 @@
     const [selectedNodeId, setSelectedNodeId] = (0, import_react.useState)(null);
     const [expandedDetails, setExpandedDetails] = (0, import_react.useState)(/* @__PURE__ */ new Set());
     const [collapsedSnippets, setCollapsedSnippets] = (0, import_react.useState)(/* @__PURE__ */ new Set());
+    const [graphEdges, setGraphEdges] = (0, import_react.useState)([]);
+    const [graphCanvasSize, setGraphCanvasSize] = (0, import_react.useState)({ width: 0, height: 0 });
+    const treeRef = (0, import_react.useRef)(null);
+    const nodeRefs = (0, import_react.useRef)(/* @__PURE__ */ new Map());
     const graphFiles = (0, import_react.useMemo)(() => normalizeGraphFiles(callGraph, files), [callGraph, files]);
     const selectedFile = graphFiles.find((file) => file.id === selectedFileId) ?? graphFiles[0];
-    const levels = (0, import_react.useMemo)(
-      () => selectedFile ? flattenByDepth(selectedFile.root) : [],
-      [selectedFile]
-    );
+    const measureGraph = (0, import_react.useCallback)(() => {
+      const tree = treeRef.current;
+      if (!tree || !selectedFile) {
+        setGraphEdges([]);
+        return;
+      }
+      const treeRect = tree.getBoundingClientRect();
+      const width = Math.max(tree.clientWidth, tree.scrollWidth);
+      const height = Math.max(tree.clientHeight, tree.scrollHeight);
+      const nextEdges = collectEdges(selectedFile.root).flatMap(([parent, child], index) => {
+        const parentElement = nodeRefs.current.get(parent.id);
+        const childElement = nodeRefs.current.get(child.id);
+        if (!parentElement || !childElement) return [];
+        const parentRect = parentElement.getBoundingClientRect();
+        const childRect = childElement.getBoundingClientRect();
+        const startX = parentRect.left - treeRect.left + parentRect.width / 2;
+        const startY = parentRect.bottom - treeRect.top;
+        const endX = childRect.left - treeRect.left + childRect.width / 2;
+        const endY = childRect.top - treeRect.top - 5;
+        const middleY = startY + Math.max(12, (endY - startY) / 2);
+        return [{
+          id: `${parent.id}:${child.id}:${index}`,
+          parentId: parent.id,
+          childId: child.id,
+          path: `M ${startX} ${startY} L ${startX} ${middleY} L ${endX} ${middleY} L ${endX} ${endY}`
+        }];
+      });
+      setGraphCanvasSize({ width, height });
+      setGraphEdges(nextEdges);
+    }, [selectedFile]);
+    (0, import_react.useLayoutEffect)(() => {
+      const tree = treeRef.current;
+      if (!tree || !selectedFile) return;
+      const frame = window.requestAnimationFrame(measureGraph);
+      const observer = new ResizeObserver(() => measureGraph());
+      observer.observe(tree);
+      nodeRefs.current.forEach((node) => observer.observe(node));
+      window.addEventListener("resize", measureGraph);
+      return () => {
+        window.cancelAnimationFrame(frame);
+        observer.disconnect();
+        window.removeEventListener("resize", measureGraph);
+      };
+    }, [measureGraph, selectedFile]);
     if (!selectedFile) {
       return /* @__PURE__ */ import_react.default.createElement("section", null, /* @__PURE__ */ import_react.default.createElement("div", { className: "section-label" }, "Call graph"), /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-area" }, /* @__PURE__ */ import_react.default.createElement("p", { className: "muted" }, "\uBD84\uC11D \uACB0\uACFC\uB97C \uAE30\uB2E4\uB9AC\uB294 \uC911\uC785\uB2C8\uB2E4.")));
     }
@@ -21644,6 +21704,7 @@
     }
     function renderSummaryBlock(block, isChild = false) {
       const bullets = splitBulletPoints(block.explanation);
+      const hasBulletFormatting = /^\s*(?:[-*•]|\d+[.)])\s+/m.test(block.explanation);
       const refMap = /* @__PURE__ */ new Map();
       block.codeReferences?.forEach((ref) => refMap.set(ref.sentenceIndex, ref));
       const childBlocks = childBlocksByParent.get(block.id) ?? [];
@@ -21662,7 +21723,7 @@
         },
         /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-analysis-header" }, /* @__PURE__ */ import_react.default.createElement("span", { className: `block-type-badge badge-${block.blockType}` }, block.blockType), /* @__PURE__ */ import_react.default.createElement("strong", null, block.title), /* @__PURE__ */ import_react.default.createElement("span", { className: "block-lines" }, "L", block.lineRange.start, "-", block.lineRange.end)),
         block.codeSnippet && !snippetHidden && /* @__PURE__ */ import_react.default.createElement("pre", { className: "graph-block-code" }, /* @__PURE__ */ import_react.default.createElement("code", null, block.codeSnippet)),
-        /* @__PURE__ */ import_react.default.createElement("ul", { className: "bullet-list graph-bullet-list" }, bullets.map((bullet, index) => {
+        hasBulletFormatting && bullets.length > 1 ? /* @__PURE__ */ import_react.default.createElement("ul", { className: "bullet-list graph-bullet-list" }, bullets.map((bullet, index) => {
           const ref = refMap.get(index);
           const isHighlighted = highlightedSentence?.blockId === block.id && highlightedSentence?.sentenceIndex === index;
           return /* @__PURE__ */ import_react.default.createElement(
@@ -21676,6 +21737,22 @@
               }
             },
             /* @__PURE__ */ import_react.default.createElement("span", { className: "bullet-text" }, bullet, ref && /* @__PURE__ */ import_react.default.createElement("span", { className: "bullet-ref", title: `${ref.targetName} (L${ref.lineStart}-${ref.lineEnd})` }, ref.targetName, " L", ref.lineStart))
+          );
+        })) : /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-prose-list" }, bullets.map((text, index) => {
+          const ref = refMap.get(index);
+          const isHighlighted = highlightedSentence?.blockId === block.id && highlightedSentence?.sentenceIndex === index;
+          return /* @__PURE__ */ import_react.default.createElement(
+            "p",
+            {
+              key: index,
+              className: isHighlighted ? "graph-prose-highlight" : "",
+              onClick: (e) => {
+                e.stopPropagation();
+                onSentenceDrag({ blockId: block.id, sentenceIndex: index });
+              }
+            },
+            text,
+            ref && /* @__PURE__ */ import_react.default.createElement("span", { className: "bullet-ref", title: `${ref.targetName} (L${ref.lineStart}-${ref.lineEnd})` }, ref.targetName, " L", ref.lineStart)
           );
         })),
         /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-analysis-actions" }, block.codeSnippet && /* @__PURE__ */ import_react.default.createElement(
@@ -21704,7 +21781,27 @@
         detailsOpen && childBlocks.length > 0 && /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-analysis-children" }, childBlocks.map((child) => renderSummaryBlock(child, true)))
       );
     }
-    return /* @__PURE__ */ import_react.default.createElement("section", null, /* @__PURE__ */ import_react.default.createElement("div", { className: "section-label" }, "Call graph"), /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-area graph-flow-area" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-header graph-file-header" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "graph-count" }, nodeCount, " nodes"), selectedFile.relatedFiles.length > 0 && /* @__PURE__ */ import_react.default.createElement("span", { className: "graph-related-files" }, "includes ", selectedFile.relatedFiles.length, " files")), /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-file-tabs", role: "tablist", "aria-label": "Call graph files" }, graphFiles.map((file) => /* @__PURE__ */ import_react.default.createElement(
+    function renderTreeNode(node) {
+      const isSelected = selected.id === node.id;
+      const hasChildren = node.children.length > 0;
+      return /* @__PURE__ */ import_react.default.createElement("div", { key: node.id, className: `call-tree-item ${hasChildren ? "call-tree-branch" : ""}` }, /* @__PURE__ */ import_react.default.createElement(
+        "button",
+        {
+          type: "button",
+          className: `call-tree-node ${isSelected ? "call-tree-node-selected" : ""}`,
+          ref: (element) => {
+            if (element) nodeRefs.current.set(node.id, element);
+            else nodeRefs.current.delete(node.id);
+          },
+          onClick: () => setSelectedNodeId(node.id),
+          title: `${node.signature || nodeLabel(node)} \xB7 ${node.filename}: ${node.lineRange.start}-${node.lineRange.end}`
+        },
+        /* @__PURE__ */ import_react.default.createElement("span", { className: `fn-icon ${nodeIconClass(node)}` }, nodeIcon(node)),
+        /* @__PURE__ */ import_react.default.createElement("span", { className: "call-tree-text" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "call-tree-name" }, nodeLabel(node)), nodeArguments(node) && /* @__PURE__ */ import_react.default.createElement("span", { className: "call-tree-args" }, "args: ", nodeArguments(node)), /* @__PURE__ */ import_react.default.createElement("span", { className: "call-tree-meta" }, nodeTypeLabel(node), " \xB7 L", node.lineRange.start, "-", node.lineRange.end)),
+        hasChildren && /* @__PURE__ */ import_react.default.createElement("span", { className: "flow-node-count" }, node.children.length)
+      ), hasChildren && /* @__PURE__ */ import_react.default.createElement("div", { className: "call-tree-children" }, node.children.map((child) => renderTreeNode(child))));
+    }
+    return /* @__PURE__ */ import_react.default.createElement("section", null, /* @__PURE__ */ import_react.default.createElement("div", { className: "section-label" }, "Call graph"), /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-area graph-flow-area" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-file-tabs graph-file-tabs-vscode", role: "tablist", "aria-label": "Call graph files" }, graphFiles.map((file) => /* @__PURE__ */ import_react.default.createElement(
       "button",
       {
         key: file.id,
@@ -21713,20 +21810,55 @@
         onClick: () => selectFile(file),
         title: file.filename
       },
-      /* @__PURE__ */ import_react.default.createElement("span", null, file.title)
-    ))), /* @__PURE__ */ import_react.default.createElement("div", { className: "flow-graph", role: "tree", "aria-label": "Call graph flow" }, levels.map((level, depth) => /* @__PURE__ */ import_react.default.createElement("div", { key: depth, className: "flow-level" }, depth > 0 && /* @__PURE__ */ import_react.default.createElement("div", { className: "flow-level-connector", "aria-hidden": "true" }), /* @__PURE__ */ import_react.default.createElement("div", { className: "flow-node-row" }, level.map(({ node }) => /* @__PURE__ */ import_react.default.createElement(
-      "button",
+      /* @__PURE__ */ import_react.default.createElement("span", { className: "file-tab-icon" }, file.filename.endsWith(".ts") || file.filename.endsWith(".tsx") ? "TS" : "F"),
+      /* @__PURE__ */ import_react.default.createElement("span", { className: "file-tab-name" }, file.filename.split("/").pop() ?? file.filename)
+    ))), /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-workspace" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-diagram-pane" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-header graph-file-header" }, /* @__PURE__ */ import_react.default.createElement("strong", { className: "graph-file-analysis-title" }, selectedFile.title), /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-file-meta" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "graph-count" }, nodeCount, " nodes"), selectedFile.relatedFiles.length > 0 && /* @__PURE__ */ import_react.default.createElement("span", { className: "graph-related-files" }, "includes ", selectedFile.relatedFiles.length, " files"))), /* @__PURE__ */ import_react.default.createElement("div", { className: "call-tree", ref: treeRef, role: "tree", "aria-label": "Call graph flow" }, graphCanvasSize.width > 0 && /* @__PURE__ */ import_react.default.createElement(
+      "svg",
       {
-        key: node.id,
-        type: "button",
-        className: `flow-node ${selected.id === node.id ? "flow-node-selected" : ""}`,
-        onClick: () => setSelectedNodeId(node.id),
-        title: `${node.filename}: ${node.lineRange.start}-${node.lineRange.end}`
+        className: "call-tree-edges",
+        width: graphCanvasSize.width,
+        height: graphCanvasSize.height,
+        viewBox: `0 0 ${graphCanvasSize.width} ${graphCanvasSize.height}`,
+        "aria-hidden": "true"
       },
-      /* @__PURE__ */ import_react.default.createElement("span", { className: "flow-node-type" }, node.type.slice(0, 1).toUpperCase()),
-      /* @__PURE__ */ import_react.default.createElement("span", { className: "flow-node-name" }, nodeLabel(node)),
-      node.children.length > 0 && /* @__PURE__ */ import_react.default.createElement("span", { className: "flow-node-count" }, node.children.length)
-    )))))), /* @__PURE__ */ import_react.default.createElement("aside", { className: "flow-detail" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "flow-detail-title" }, /* @__PURE__ */ import_react.default.createElement("strong", null, nodeLabel(selected)), /* @__PURE__ */ import_react.default.createElement("span", null, selected.filename, " L", selected.lineRange.start, "-", selected.lineRange.end)), selected.summary && /* @__PURE__ */ import_react.default.createElement("p", null, selected.summary), selected.bulletPoints.length > 0 && /* @__PURE__ */ import_react.default.createElement("ul", { className: "node-detail-bullets" }, selected.bulletPoints.map((point, index) => /* @__PURE__ */ import_react.default.createElement("li", { key: index }, point))), visibleBlocks.length > 0 && /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-analysis-panel" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-analysis-title" }, "\uC120\uD0DD \uB178\uB4DC \uC0C1\uC138"), visibleBlocks.map((block) => renderSummaryBlock(block))))));
+      /* @__PURE__ */ import_react.default.createElement("defs", null, /* @__PURE__ */ import_react.default.createElement(
+        "marker",
+        {
+          id: "call-tree-arrow",
+          viewBox: "0 0 8 8",
+          refX: "7",
+          refY: "4",
+          markerWidth: "7",
+          markerHeight: "7",
+          orient: "auto"
+        },
+        /* @__PURE__ */ import_react.default.createElement("path", { d: "M 0 0 L 8 4 L 0 8 z" })
+      ), /* @__PURE__ */ import_react.default.createElement(
+        "marker",
+        {
+          id: "call-tree-arrow-active",
+          viewBox: "0 0 8 8",
+          refX: "7",
+          refY: "4",
+          markerWidth: "7",
+          markerHeight: "7",
+          orient: "auto"
+        },
+        /* @__PURE__ */ import_react.default.createElement("path", { d: "M 0 0 L 8 4 L 0 8 z" })
+      )),
+      graphEdges.map((edge) => {
+        const active = edge.parentId === selected.id || edge.childId === selected.id;
+        return /* @__PURE__ */ import_react.default.createElement(
+          "path",
+          {
+            key: edge.id,
+            className: `call-tree-edge ${active ? "call-tree-edge-active" : ""}`,
+            d: edge.path,
+            markerEnd: `url(#${active ? "call-tree-arrow-active" : "call-tree-arrow"})`
+          }
+        );
+      })
+    ), renderTreeNode(selectedFile.root))), /* @__PURE__ */ import_react.default.createElement("aside", { className: "flow-detail" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "flow-detail-eyebrow" }, "\uC120\uD0DD \uB178\uB4DC \uC0C1\uC138"), /* @__PURE__ */ import_react.default.createElement("div", { className: "flow-detail-title" }, /* @__PURE__ */ import_react.default.createElement("strong", null, nodeLabel(selected)), /* @__PURE__ */ import_react.default.createElement("span", null, selected.filename, " L", selected.lineRange.start, "-", selected.lineRange.end)), nodeArguments(selected) && /* @__PURE__ */ import_react.default.createElement("div", { className: "flow-detail-signature" }, "args: ", nodeArguments(selected)), selected.summary && /* @__PURE__ */ import_react.default.createElement("p", null, selected.summary), selected.bulletPoints.length > 0 && /* @__PURE__ */ import_react.default.createElement("ul", { className: "node-detail-bullets" }, selected.bulletPoints.map((point, index) => /* @__PURE__ */ import_react.default.createElement("li", { key: index }, point))))), visibleBlocks.length > 0 && /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-analysis-panel graph-analysis-panel-below" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "graph-analysis-title" }, "In-depth snippet analysis"), visibleBlocks.map((block) => renderSummaryBlock(block)))));
   }
   var import_react;
   var init_CallGraphView = __esm({
@@ -21738,7 +21870,14 @@
   });
 
   // webview-ui/src/components/ChatPanel.tsx
-  function ChatPanel({ messages, onSend, loading, expanded, onToggleExpand }) {
+  function ChatPanel({
+    messages,
+    onSend,
+    loading,
+    expanded,
+    modelLabel,
+    onToggleExpand
+  }) {
     const [input, setInput] = (0, import_react2.useState)("");
     const bottomRef = (0, import_react2.useRef)(null);
     const inputRef = (0, import_react2.useRef)(null);
@@ -21762,15 +21901,15 @@
     function handleInputFocus() {
       if (!expanded) onToggleExpand();
     }
-    return /* @__PURE__ */ import_react2.default.createElement("section", { className: `chat-panel ${expanded ? "chat-panel-expanded" : "chat-panel-collapsed"}` }, /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", className: "chat-header-bar", onClick: onToggleExpand }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-header-icon", "aria-hidden": "true" }, /* @__PURE__ */ import_react2.default.createElement("svg", { viewBox: "0 0 16 16" }, /* @__PURE__ */ import_react2.default.createElement("path", { d: "M3.5 3.5h9A1.5 1.5 0 0 1 14 5v5.2a1.5 1.5 0 0 1-1.5 1.5H8l-3.7 2v-2H3.5A1.5 1.5 0 0 1 2 10.2V5a1.5 1.5 0 0 1 1.5-1.5Z" }), /* @__PURE__ */ import_react2.default.createElement("path", { d: "M5 6.5h6M5 8.8h4" }))), /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-header-label" }, "Ask AI"), messages.length > 0 && /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-msg-count" }, messages.length), /* @__PURE__ */ import_react2.default.createElement("span", { style: { flex: 1 } }), /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-expand-icon", "aria-hidden": "true" }, /* @__PURE__ */ import_react2.default.createElement("svg", { viewBox: "0 0 16 16" }, /* @__PURE__ */ import_react2.default.createElement("path", { d: expanded ? "M4.5 6.5 8 10l3.5-3.5" : "M4.5 9.5 8 6l3.5 3.5" })))), expanded && /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-messages" }, messages.length === 0 && /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted chat-empty" }, "\uBCC0\uACBD \uC758\uB3C4, \uC704\uD5D8 \uC9C0\uC810, \uD14C\uC2A4\uD2B8 \uBC94\uC704\uB97C \uBC14\uB85C \uBB3C\uC5B4\uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4."), messages.map((msg, idx) => /* @__PURE__ */ import_react2.default.createElement(
+    return /* @__PURE__ */ import_react2.default.createElement("section", { className: `chat-panel ${expanded ? "chat-panel-expanded" : "chat-panel-collapsed"}` }, /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", className: "chat-header-bar", onClick: onToggleExpand }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-header-icon", "aria-hidden": "true" }, /* @__PURE__ */ import_react2.default.createElement("svg", { viewBox: "0 0 16 16" }, /* @__PURE__ */ import_react2.default.createElement("path", { d: "M3.5 3.5h9A1.5 1.5 0 0 1 14 5v5.2a1.5 1.5 0 0 1-1.5 1.5H8l-3.7 2v-2H3.5A1.5 1.5 0 0 1 2 10.2V5a1.5 1.5 0 0 1 1.5-1.5Z" }), /* @__PURE__ */ import_react2.default.createElement("path", { d: "M5 6.5h6M5 8.8h4" }))), /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-header-label" }, modelLabel), messages.length > 0 && /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-msg-count" }, messages.length), /* @__PURE__ */ import_react2.default.createElement("span", { style: { flex: 1 } }), /* @__PURE__ */ import_react2.default.createElement("span", { className: "chat-expand-icon", "aria-hidden": "true" }, /* @__PURE__ */ import_react2.default.createElement("svg", { viewBox: "0 0 16 16" }, /* @__PURE__ */ import_react2.default.createElement("path", { d: expanded ? "M4.5 6.5 8 10l3.5-3.5" : "M4.5 9.5 8 6l3.5 3.5" })))), expanded && /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-messages" }, messages.length === 0 && /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted chat-empty" }, "\uBCC0\uACBD \uC758\uB3C4, \uC704\uD5D8 \uC9C0\uC810, \uD14C\uC2A4\uD2B8 \uBC94\uC704\uB97C \uBC14\uB85C \uBB3C\uC5B4\uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4."), messages.map((msg, idx) => /* @__PURE__ */ import_react2.default.createElement(
       "div",
       {
         key: idx,
         className: `chat-bubble ${msg.role === "user" ? "chat-user" : "chat-assistant"}`
       },
-      /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-role" }, msg.role === "user" ? "You" : "AI"),
+      /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-role" }, msg.role === "user" ? "You" : msg.modelLabel ?? modelLabel),
       /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-content" }, msg.content)
-    )), loading && /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-bubble chat-assistant" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-role" }, "AI"), /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-content chat-loading" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "dot-pulse" }))), /* @__PURE__ */ import_react2.default.createElement("div", { ref: bottomRef })), /* @__PURE__ */ import_react2.default.createElement("form", { className: "chat-input-row", onSubmit: handleSubmit }, /* @__PURE__ */ import_react2.default.createElement(
+    )), loading && /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-bubble chat-assistant" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-role" }, modelLabel), /* @__PURE__ */ import_react2.default.createElement("div", { className: "chat-content chat-loading" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "dot-pulse" }))), /* @__PURE__ */ import_react2.default.createElement("div", { ref: bottomRef })), /* @__PURE__ */ import_react2.default.createElement("form", { className: "chat-input-row", onSubmit: handleSubmit }, /* @__PURE__ */ import_react2.default.createElement(
       "textarea",
       {
         ref: inputRef,
@@ -21802,7 +21941,7 @@
     }
   });
 
-  // webview-ui/src/components/FileViewer.tsx
+  // webview-ui/src/utils/diff.ts
   function parseUnifiedDiff(patch) {
     const addedLines = /* @__PURE__ */ new Set();
     const deletedGroups = [];
@@ -21829,7 +21968,7 @@
         newLine = Number(hunk[2]);
         continue;
       }
-      if (line.startsWith("+++") || line.startsWith("---")) continue;
+      if (line.startsWith("+++") || line.startsWith("---") || line.startsWith("\\")) continue;
       if (line.startsWith("-")) {
         if (!pending) pending = { oldStart: oldLine, lines: [] };
         pending.lines.push(line.slice(1));
@@ -21850,6 +21989,13 @@
     flush(null);
     return { addedLines, deletedGroups };
   }
+  var init_diff = __esm({
+    "webview-ui/src/utils/diff.ts"() {
+      "use strict";
+    }
+  });
+
+  // webview-ui/src/components/FileViewer.tsx
   function FileViewer({
     files,
     selectedFile,
@@ -21861,6 +22007,11 @@
     const [commentPopup, setCommentPopup] = (0, import_react3.useState)(null);
     const [commentText, setCommentText] = (0, import_react3.useState)("");
     const [expandedDeletions, setExpandedDeletions] = (0, import_react3.useState)(/* @__PURE__ */ new Set());
+    const [scrollMetrics, setScrollMetrics] = (0, import_react3.useState)({
+      scrollTop: 0,
+      scrollHeight: 1,
+      clientHeight: 1
+    });
     const currentFile = (0, import_react3.useMemo)(
       () => files.find((f) => f.filename === selectedFile) ?? null,
       [files, selectedFile]
@@ -21889,6 +22040,34 @@
       );
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, [highlightRange]);
+    (0, import_react3.useEffect)(() => {
+      const element = codeRef.current;
+      if (!element) return;
+      const update = () => {
+        setScrollMetrics({
+          scrollTop: element.scrollTop,
+          scrollHeight: Math.max(1, element.scrollHeight),
+          clientHeight: Math.max(1, element.clientHeight)
+        });
+      };
+      const observer = new ResizeObserver(update);
+      observer.observe(element);
+      element.addEventListener("scroll", update, { passive: true });
+      update();
+      const frame = window.requestAnimationFrame(update);
+      return () => {
+        window.cancelAnimationFrame(frame);
+        observer.disconnect();
+        element.removeEventListener("scroll", update);
+      };
+    }, [currentFile, expandedDeletions]);
+    function seekFromRuler(clientY, target) {
+      const element = codeRef.current;
+      if (!element) return;
+      const rect = target.getBoundingClientRect();
+      const fraction = Math.min(1, Math.max(0, (clientY - rect.top) / Math.max(1, rect.height)));
+      element.scrollTop = fraction * Math.max(0, element.scrollHeight - element.clientHeight);
+    }
     function handleCodeMouseUp(e) {
       const selection = window.getSelection();
       const selectedText = selection?.toString().trim();
@@ -21966,7 +22145,7 @@
       /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-tab-icon" }, f.status === "added" ? "+" : f.status === "removed" ? "\u2212" : "~"),
       /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-tab-name" }, f.filename.split("/").pop()),
       /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-tab-stats" }, /* @__PURE__ */ import_react3.default.createElement("span", { className: "stat-add" }, "+", f.additions), /* @__PURE__ */ import_react3.default.createElement("span", { className: "stat-del" }, "-", f.deletions))
-    )))), currentFile ? /* @__PURE__ */ import_react3.default.createElement(import_react3.default.Fragment, null, /* @__PURE__ */ import_react3.default.createElement("div", { className: "file-path-bar" }, /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-path-text" }, currentFile.filename), onRequestComment && /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-comment-hint" }, "\uCF54\uB4DC\uB97C \uB4DC\uB798\uADF8\uD558\uC5EC PR \uCF54\uBA58\uD2B8 \uC791\uC131")), /* @__PURE__ */ import_react3.default.createElement("div", { className: "file-code-container", ref: codeRef, onMouseUp: handleCodeMouseUp }, (deletionsByBeforeLine.get(1) ?? []).map(renderDeletedGroup), lines.map((line, idx) => {
+    )))), currentFile ? /* @__PURE__ */ import_react3.default.createElement(import_react3.default.Fragment, null, /* @__PURE__ */ import_react3.default.createElement("div", { className: "file-path-bar" }, /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-path-text" }, currentFile.filename), onRequestComment && /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-comment-hint" }, "\uCF54\uB4DC\uB97C \uB4DC\uB798\uADF8\uD558\uC5EC PR \uCF54\uBA58\uD2B8 \uC791\uC131")), /* @__PURE__ */ import_react3.default.createElement("div", { className: "file-code-shell" }, /* @__PURE__ */ import_react3.default.createElement("div", { className: "file-code-container", ref: codeRef, onMouseUp: handleCodeMouseUp }, (deletionsByBeforeLine.get(1) ?? []).map(renderDeletedGroup), lines.map((line, idx) => {
       const lineNum = idx + 1;
       const isHighlighted = highlightRange != null && lineNum >= highlightRange.start && lineNum <= highlightRange.end;
       const isAdded = diffMeta.addedLines.has(lineNum);
@@ -21979,7 +22158,67 @@
         /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-line-num" }, lineNum),
         /* @__PURE__ */ import_react3.default.createElement("span", { className: "file-line-content" }, isAdded ? `+ ${line || " "}` : line || " ")
       ));
-    }), (deletionsByBeforeLine.get(null) ?? []).map(renderDeletedGroup))) : /* @__PURE__ */ import_react3.default.createElement("div", { className: "file-viewer-placeholder" }, /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted" }, "\uC67C\uCABD\uC5D0\uC11C \uD30C\uC77C\uC744 \uC120\uD0DD\uD558\uAC70\uB098 \uBD84\uC11D \uBE14\uB85D\uC744 \uD074\uB9AD\uD558\uC138\uC694.")), commentPopup && /* @__PURE__ */ import_react3.default.createElement(
+    }), (deletionsByBeforeLine.get(null) ?? []).map(renderDeletedGroup)), /* @__PURE__ */ import_react3.default.createElement(
+      "div",
+      {
+        className: "diff-overview-ruler",
+        role: "scrollbar",
+        "aria-label": `${currentFile.filename} \uBCC0\uACBD \uC704\uCE58`,
+        "aria-orientation": "vertical",
+        "aria-valuemin": 0,
+        "aria-valuemax": 100,
+        "aria-valuenow": Math.round(
+          scrollMetrics.scrollTop / Math.max(1, scrollMetrics.scrollHeight - scrollMetrics.clientHeight) * 100
+        ),
+        tabIndex: 0,
+        onPointerDown: (event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
+          seekFromRuler(event.clientY, event.currentTarget);
+        },
+        onPointerMove: (event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            seekFromRuler(event.clientY, event.currentTarget);
+          }
+        },
+        onKeyDown: (event) => {
+          const element = codeRef.current;
+          if (!element || event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+          event.preventDefault();
+          element.scrollTop += (event.key === "ArrowUp" ? -1 : 1) * element.clientHeight * 0.8;
+        }
+      },
+      /* @__PURE__ */ import_react3.default.createElement(
+        "div",
+        {
+          className: "diff-overview-viewport",
+          style: {
+            top: `${scrollMetrics.scrollTop / scrollMetrics.scrollHeight * 100}%`,
+            height: `${Math.min(100, scrollMetrics.clientHeight / scrollMetrics.scrollHeight * 100)}%`
+          }
+        }
+      ),
+      [...diffMeta.addedLines].map((line) => /* @__PURE__ */ import_react3.default.createElement(
+        "span",
+        {
+          key: `add-${line}`,
+          className: "diff-overview-marker diff-overview-add",
+          style: { top: `${(line - 1) / Math.max(1, lines.length - 1) * 100}%` },
+          title: `\uCD94\uAC00: L${line}`
+        }
+      )),
+      diffMeta.deletedGroups.map((group) => {
+        const line = group.beforeLine ?? Math.max(1, lines.length);
+        return /* @__PURE__ */ import_react3.default.createElement(
+          "span",
+          {
+            key: `del-${group.id}`,
+            className: "diff-overview-marker diff-overview-del",
+            style: { top: `${(line - 1) / Math.max(1, lines.length - 1) * 100}%` },
+            title: `\uC0AD\uC81C: \uC774\uC804 L${group.oldStart}\uBD80\uD130 ${group.lines.length}\uC904`
+          }
+        );
+      })
+    ))) : /* @__PURE__ */ import_react3.default.createElement("div", { className: "file-viewer-placeholder" }, /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted" }, "\uC67C\uCABD\uC5D0\uC11C \uD30C\uC77C\uC744 \uC120\uD0DD\uD558\uAC70\uB098 \uBD84\uC11D \uBE14\uB85D\uC744 \uD074\uB9AD\uD558\uC138\uC694.")), commentPopup && /* @__PURE__ */ import_react3.default.createElement(
       "div",
       {
         className: "comment-popup",
@@ -22007,16 +22246,24 @@
     "webview-ui/src/components/FileViewer.tsx"() {
       "use strict";
       import_react3 = __toESM(require_react());
+      init_diff();
     }
   });
 
-  // webview-ui/src/components/LLMSettingsPanel.tsx
-  function modelFor(config) {
+  // webview-ui/src/utils/llmDisplay.ts
+  function selectedModelName(config) {
     if (config.provider === "chatgpt") return config.chatgptModel ?? "gpt-5.5";
     if (config.provider === "claude") return config.claudeModel ?? "claude-sonnet-4-20250514";
     if (config.provider === "gemini") return config.geminiModel ?? "gemini-2.5-flash";
     return config.ollamaModel ?? "llama3";
   }
+  var init_llmDisplay = __esm({
+    "webview-ui/src/utils/llmDisplay.ts"() {
+      "use strict";
+    }
+  });
+
+  // webview-ui/src/components/LLMSettingsPanel.tsx
   function hasProviderKey(config) {
     if (config.provider === "ollama") return true;
     if (config.provider === "chatgpt") return !!config.hasOpenAIApiKey;
@@ -22034,7 +22281,9 @@
     connected,
     onClose,
     onSave,
-    onTestConnection
+    onReanalyze,
+    onTestConnection,
+    canReanalyze
   }) {
     const [draft, setDraft] = (0, import_react4.useState)(config);
     const [llmApiKey, setLlmApiKey] = (0, import_react4.useState)("");
@@ -22045,7 +22294,7 @@
       setLlmApiKey("");
       setGithubToken("");
     }, [config]);
-    const currentModel = modelFor(draft);
+    const currentModel = selectedModelName(draft);
     const modelOptions = (0, import_react4.useMemo)(() => MODEL_OPTIONS[draft.provider], [draft.provider]);
     const providerKeyConfigured = hasProviderKey(draft) || llmApiKey.trim().length > 0;
     const githubConfigured = !!draft.hasGitHubToken || githubToken.trim().length > 0;
@@ -22060,10 +22309,17 @@
       setDraft((prev) => withModel(prev, model));
     }
     function save() {
-      onSave(draft, {
+      onSave(draft, currentSecrets());
+      onClose();
+    }
+    function currentSecrets() {
+      return {
         llmApiKey: llmApiKey.trim() || void 0,
         githubToken: githubToken.trim() || void 0
-      });
+      };
+    }
+    function reanalyze() {
+      onReanalyze(draft, currentSecrets());
       onClose();
     }
     function testConnection() {
@@ -22139,8 +22395,31 @@
         },
         /* @__PURE__ */ import_react4.default.createElement("option", { value: "ko" }, "\uD55C\uAD6D\uC5B4"),
         /* @__PURE__ */ import_react4.default.createElement("option", { value: "en" }, "English")
-      ))), /* @__PURE__ */ import_react4.default.createElement("div", { className: "test-row" }, /* @__PURE__ */ import_react4.default.createElement("button", { className: "btn btn-secondary", type: "button", onClick: testConnection, disabled: testing }, testing ? "\uD14C\uC2A4\uD2B8 \uC911" : "\uC5F0\uACB0 \uD14C\uC2A4\uD2B8"), /* @__PURE__ */ import_react4.default.createElement("span", { className: `connection-chip ${connected ? "" : "connection-chip-off"}` }, connected ? "\uC131\uACF5" : "\uB300\uAE30")))),
-      /* @__PURE__ */ import_react4.default.createElement("footer", { className: "settings-footer" }, /* @__PURE__ */ import_react4.default.createElement("button", { className: "btn btn-secondary", type: "button", onClick: onClose }, "\uCDE8\uC18C"), /* @__PURE__ */ import_react4.default.createElement("button", { className: "btn btn-primary", type: "button", onClick: save }, "\uC800\uC7A5"))
+      ))), /* @__PURE__ */ import_react4.default.createElement("label", { className: "field-label", htmlFor: "additional-system-prompt" }, "\uCD94\uAC00 \uBD84\uC11D \uAE30\uC900"), /* @__PURE__ */ import_react4.default.createElement(
+        "textarea",
+        {
+          id: "additional-system-prompt",
+          className: "input settings-prompt-input",
+          value: draft.additionalSystemPrompt ?? "",
+          onChange: (event) => setDraft((prev) => ({
+            ...prev,
+            additionalSystemPrompt: event.target.value
+          })),
+          placeholder: "\uC608: Google MLIR \uC5D4\uC9C0\uB2C8\uC5B4\uC758 \uAD00\uC810\uC5D0\uC11C MLIR \uBB38\uBC95 \uC624\uB958\uC640 dialect \uC0AC\uC6A9\uC0C1\uC758 \uBB38\uC81C\uB97C \uC124\uBA85\uD574\uC918.",
+          rows: 5
+        }
+      ), /* @__PURE__ */ import_react4.default.createElement("p", { className: "settings-field-help" }, "\uC774 \uC6CC\uD06C\uC2A4\uD398\uC774\uC2A4\uC758 PR \uBD84\uC11D\uC5D0\uB9CC \uCD94\uAC00\uB85C \uC801\uC6A9\uB429\uB2C8\uB2E4. Ask AI \uB300\uD654\uC5D0\uB294 \uC801\uC6A9\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."), /* @__PURE__ */ import_react4.default.createElement("div", { className: "test-row" }, /* @__PURE__ */ import_react4.default.createElement("button", { className: "btn btn-secondary", type: "button", onClick: testConnection, disabled: testing }, testing ? "\uD14C\uC2A4\uD2B8 \uC911" : "\uC5F0\uACB0 \uD14C\uC2A4\uD2B8"), /* @__PURE__ */ import_react4.default.createElement("span", { className: `connection-chip ${connected ? "" : "connection-chip-off"}` }, connected ? "\uC131\uACF5" : "\uB300\uAE30")))),
+      /* @__PURE__ */ import_react4.default.createElement("footer", { className: "settings-footer" }, /* @__PURE__ */ import_react4.default.createElement("button", { className: "btn btn-secondary", type: "button", onClick: onClose }, "\uCDE8\uC18C"), /* @__PURE__ */ import_react4.default.createElement(
+        "button",
+        {
+          className: "btn btn-secondary",
+          type: "button",
+          onClick: reanalyze,
+          disabled: !canReanalyze,
+          title: canReanalyze ? "\uC124\uC815\uC744 \uC800\uC7A5\uD558\uACE0 \uD604\uC7AC PR\uC744 \uB2E4\uC2DC \uBD84\uC11D\uD569\uB2C8\uB2E4" : "\uBA3C\uC800 PR \uBD84\uC11D\uC744 \uC2E4\uD589\uD574\uC8FC\uC138\uC694"
+        },
+        "\uC800\uC7A5 \uD6C4 \uC7AC\uBD84\uC11D"
+      ), /* @__PURE__ */ import_react4.default.createElement("button", { className: "btn btn-primary", type: "button", onClick: save }, "\uC800\uC7A5"))
     ));
   }
   var import_react4, PROVIDER_OPTIONS, MODEL_OPTIONS;
@@ -22148,6 +22427,7 @@
     "webview-ui/src/components/LLMSettingsPanel.tsx"() {
       "use strict";
       import_react4 = __toESM(require_react());
+      init_llmDisplay();
       PROVIDER_OPTIONS = [
         { value: "chatgpt", label: "OpenAI", icon: "AI" },
         { value: "claude", label: "Anthropic", icon: "A" },
@@ -22180,7 +22460,20 @@
   // webview-ui/src/components/ProgressOverlay.tsx
   function ProgressOverlay({ visible, stage, progress, error, onDismiss }) {
     if (!visible && !error) return null;
-    return /* @__PURE__ */ import_react6.default.createElement("div", { className: "overlay" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "overlay-card" }, /* @__PURE__ */ import_react6.default.createElement("button", { className: "overlay-close", onClick: onDismiss, title: "Close" }, "\xD7"), error ? /* @__PURE__ */ import_react6.default.createElement("p", { className: "error-text" }, error) : /* @__PURE__ */ import_react6.default.createElement(import_react6.default.Fragment, null, /* @__PURE__ */ import_react6.default.createElement("p", { className: "muted" }, stageLabels[stage] ?? stage), /* @__PURE__ */ import_react6.default.createElement("div", { className: "progress-bar" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "progress-fill", style: { width: `${progress}%` } })), /* @__PURE__ */ import_react6.default.createElement("p", { className: "muted" }, progress, "%"))));
+    const safeProgress = Math.min(100, Math.max(0, progress));
+    const stageLabel = stageLabels[stage] ?? stage;
+    return /* @__PURE__ */ import_react6.default.createElement("div", { className: "overlay" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "overlay-card", role: "status", "aria-live": "polite", "aria-atomic": "true" }, /* @__PURE__ */ import_react6.default.createElement("button", { className: "overlay-close", onClick: onDismiss, title: "\uB2EB\uAE30", "aria-label": "\uB85C\uB529 \uCC3D \uB2EB\uAE30" }, "\xD7"), error ? /* @__PURE__ */ import_react6.default.createElement("p", { className: "error-text" }, error) : /* @__PURE__ */ import_react6.default.createElement(import_react6.default.Fragment, null, /* @__PURE__ */ import_react6.default.createElement("div", { className: "loading-orbit", "aria-hidden": "true" }, /* @__PURE__ */ import_react6.default.createElement("span", { className: "loading-orbit-ring" }), /* @__PURE__ */ import_react6.default.createElement("span", { className: "loading-orbit-core" })), /* @__PURE__ */ import_react6.default.createElement("div", { className: "loading-stage" }, /* @__PURE__ */ import_react6.default.createElement("span", null, stageLabel), /* @__PURE__ */ import_react6.default.createElement("span", { className: "loading-dots", "aria-hidden": "true" }, /* @__PURE__ */ import_react6.default.createElement("span", null), /* @__PURE__ */ import_react6.default.createElement("span", null), /* @__PURE__ */ import_react6.default.createElement("span", null))), /* @__PURE__ */ import_react6.default.createElement(
+      "div",
+      {
+        className: "progress-bar",
+        role: "progressbar",
+        "aria-label": stageLabel,
+        "aria-valuemin": 0,
+        "aria-valuemax": 100,
+        "aria-valuenow": safeProgress
+      },
+      /* @__PURE__ */ import_react6.default.createElement("div", { className: "progress-fill", style: { width: `${safeProgress}%` } })
+    ), /* @__PURE__ */ import_react6.default.createElement("p", { className: "progress-value" }, safeProgress, "%"))));
   }
   var import_react6, stageLabels;
   var init_ProgressOverlay = __esm({
@@ -22188,128 +22481,19 @@
       "use strict";
       import_react6 = __toESM(require_react());
       stageLabels = {
-        fetching_pr: "PR \uB370\uC774\uD130 \uAC00\uC838\uC624\uB294 \uC911...",
-        calling_llm: "LLM \uBD84\uC11D \uC911...",
-        parsing_ast: "AST \uD30C\uC2F1 \uC911...",
-        building_map: "\uB9E4\uD551 \uC0DD\uC131 \uC911..."
+        preparing_reanalysis: "\uC124\uC815\uC744 \uC800\uC7A5\uD558\uACE0 \uC7AC\uBD84\uC11D\uC744 \uC900\uBE44\uD558\uB294 \uC911",
+        fetching_pr: "PR \uB370\uC774\uD130 \uAC00\uC838\uC624\uB294 \uC911",
+        calling_llm: "LLM \uBD84\uC11D \uC911",
+        parsing_ast: "AST \uD30C\uC2F1 \uC911",
+        building_map: "\uB9E4\uD551 \uC0DD\uC131 \uC911"
       };
-    }
-  });
-
-  // webview-ui/src/components/StepByStepAnalysis.tsx
-  function topLevelBlocks(blocks) {
-    const topLevel = blocks.filter((b) => !b.depth || b.depth === 0);
-    return topLevel.length > 0 ? topLevel : blocks;
-  }
-  function StepByStepAnalysis({
-    blocks,
-    activeBlockId,
-    highlightedSentence,
-    onSentenceDrag,
-    onBlockClick
-  }) {
-    const [collapsedSnippets, setCollapsedSnippets] = (0, import_react7.useState)(/* @__PURE__ */ new Set());
-    const containerRef = (0, import_react7.useRef)(null);
-    const visibleBlocks = (0, import_react7.useMemo)(() => topLevelBlocks(blocks), [blocks]);
-    function toggleSnippet(blockId) {
-      setCollapsedSnippets((prev) => {
-        const next = new Set(prev);
-        if (next.has(blockId)) next.delete(blockId);
-        else next.add(blockId);
-        return next;
-      });
-    }
-    function handleBulletClick(block, sentenceIndex) {
-      onSentenceDrag({ blockId: block.id, sentenceIndex });
-    }
-    function handleTextMouseUp(block) {
-      const selection = window.getSelection()?.toString().trim();
-      if (!selection || selection.length < 3) return;
-      const bullets = splitBulletPoints(block.explanation);
-      const sentenceIndex = Math.max(
-        0,
-        bullets.findIndex((s) => s.includes(selection) || selection.includes(s))
-      );
-      onSentenceDrag({ blockId: block.id, sentenceIndex });
-    }
-    function renderBlock(block, isChild = false) {
-      const isActive = activeBlockId === block.id;
-      const isSnippetHidden = collapsedSnippets.has(block.id);
-      const bullets = splitBulletPoints(block.explanation);
-      const refMap = /* @__PURE__ */ new Map();
-      if (block.codeReferences) {
-        for (const ref of block.codeReferences) {
-          refMap.set(ref.sentenceIndex, ref);
-        }
-      }
-      return /* @__PURE__ */ import_react7.default.createElement(
-        "article",
-        {
-          key: block.id,
-          className: `analysis-block ${isActive ? "analysis-active" : ""} ${isChild ? "analysis-child" : ""}`,
-          id: `block-${block.id}`,
-          onClick: (e) => {
-            e.stopPropagation();
-            onBlockClick(block.filename, block.lineRange);
-          }
-        },
-        /* @__PURE__ */ import_react7.default.createElement("header", { className: "analysis-header" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "analysis-header-left" }, /* @__PURE__ */ import_react7.default.createElement("span", { className: `block-type-badge badge-${block.blockType}` }, block.blockType), /* @__PURE__ */ import_react7.default.createElement("strong", { className: "block-title" }, block.title)), /* @__PURE__ */ import_react7.default.createElement("div", { className: "analysis-header-actions" }, block.codeSnippet && /* @__PURE__ */ import_react7.default.createElement(
-          "button",
-          {
-            type: "button",
-            className: "snippet-toggle",
-            onClick: (e) => {
-              e.stopPropagation();
-              toggleSnippet(block.id);
-            }
-          },
-          /* @__PURE__ */ import_react7.default.createElement("span", { className: "snippet-toggle-icon" }, isSnippetHidden ? "\u25B8" : "\u25BE"),
-          /* @__PURE__ */ import_react7.default.createElement("span", { className: "snippet-toggle-label" }, isSnippetHidden ? "Show code" : "Hide code")
-        ), /* @__PURE__ */ import_react7.default.createElement("span", { className: "block-lines" }, "Lines ", block.lineRange.start, "-", block.lineRange.end))),
-        block.codeSnippet && !isSnippetHidden && /* @__PURE__ */ import_react7.default.createElement("pre", { className: "block-code" }, /* @__PURE__ */ import_react7.default.createElement("code", null, block.codeSnippet)),
-        /* @__PURE__ */ import_react7.default.createElement(
-          "ul",
-          {
-            className: "bullet-list",
-            "data-block-id": block.id,
-            onMouseUp: () => handleTextMouseUp(block)
-          },
-          bullets.map((bullet, sIdx) => {
-            const isHighlighted = highlightedSentence?.blockId === block.id && highlightedSentence?.sentenceIndex === sIdx;
-            const ref = refMap.get(sIdx);
-            return /* @__PURE__ */ import_react7.default.createElement(
-              "li",
-              {
-                key: sIdx,
-                className: `bullet-item ${isHighlighted ? "bullet-highlight" : ""}`,
-                onClick: (e) => {
-                  e.stopPropagation();
-                  handleBulletClick(block, sIdx);
-                }
-              },
-              /* @__PURE__ */ import_react7.default.createElement("span", { className: "bullet-text" }, bullet, ref && /* @__PURE__ */ import_react7.default.createElement("span", { className: "bullet-ref", title: `${ref.targetName} (L${ref.lineStart}-${ref.lineEnd})` }, ref.targetName, " L", ref.lineStart))
-            );
-          })
-        ),
-        block.keyChanges.length > 0 && /* @__PURE__ */ import_react7.default.createElement("div", { className: "key-changes" }, block.keyChanges.map((kc, i) => /* @__PURE__ */ import_react7.default.createElement("span", { key: i, className: "key-change-tag" }, kc))),
-        /* @__PURE__ */ import_react7.default.createElement("div", { className: "drag-hint" }, /* @__PURE__ */ import_react7.default.createElement("svg", { viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: "1.5", width: "12", height: "12" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M3 8h10M10 5l3 3-3 3" })), "\uD56D\uBAA9\uC744 \uD074\uB9AD\uD558\uAC70\uB098 \uD14D\uC2A4\uD2B8\uB97C \uB4DC\uB798\uADF8\uD558\uBA74 \uC624\uB978\uCABD \uCF54\uB4DC\uAC00 \uD558\uC774\uB77C\uC774\uD2B8\uB429\uB2C8\uB2E4")
-      );
-    }
-    return /* @__PURE__ */ import_react7.default.createElement("section", { className: "card step-analysis-section", ref: containerRef, style: { position: "relative" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "section-label" }, "Step-by-step analysis"), /* @__PURE__ */ import_react7.default.createElement("div", { className: "analysis-list" }, visibleBlocks.map((block) => /* @__PURE__ */ import_react7.default.createElement("div", { key: block.id, className: "analysis-group" }, renderBlock(block)))));
-  }
-  var import_react7;
-  var init_StepByStepAnalysis = __esm({
-    "webview-ui/src/components/StepByStepAnalysis.tsx"() {
-      "use strict";
-      import_react7 = __toESM(require_react());
-      init_text();
     }
   });
 
   // webview-ui/src/hooks/useMapping.ts
   function useMapping(mappingTable) {
-    const [highlighted, setHighlighted] = (0, import_react8.useState)(null);
-    const mapByBlock = (0, import_react8.useMemo)(() => {
+    const [highlighted, setHighlighted] = (0, import_react7.useState)(null);
+    const mapByBlock = (0, import_react7.useMemo)(() => {
       const map = /* @__PURE__ */ new Map();
       for (const row of mappingTable) {
         const list = map.get(row.summaryBlockId) ?? [];
@@ -22323,17 +22507,17 @@
     }
     return { highlighted, setHighlighted, findBest };
   }
-  var import_react8;
+  var import_react7;
   var init_useMapping = __esm({
     "webview-ui/src/hooks/useMapping.ts"() {
       "use strict";
-      import_react8 = __toESM(require_react());
+      import_react7 = __toESM(require_react());
     }
   });
 
   // webview-ui/src/hooks/useVSCodeAPI.ts
   function useVSCodeAPI(onMessage) {
-    (0, import_react9.useEffect)(() => {
+    (0, import_react8.useEffect)(() => {
       const listener = (event) => {
         console.log("[Webview] Received:", event.data?.type, event.data?.payload);
         onMessage(event.data);
@@ -22349,11 +22533,11 @@
       }
     };
   }
-  var import_react9, vscode;
+  var import_react8, vscode;
   var init_useVSCodeAPI = __esm({
     "webview-ui/src/hooks/useVSCodeAPI.ts"() {
       "use strict";
-      import_react9 = __toESM(require_react());
+      import_react8 = __toESM(require_react());
       vscode = window.acquireVsCodeApi?.();
     }
   });
@@ -22366,24 +22550,27 @@
 
   // webview-ui/src/App.tsx
   function App() {
-    const [analysis, setAnalysis] = (0, import_react10.useState)(null);
-    const [llmConfig, setLlmConfig] = (0, import_react10.useState)(DEFAULT_LLM_CONFIG);
-    const [connectionOk, setConnectionOk] = (0, import_react10.useState)(false);
-    const [language, setLanguage] = (0, import_react10.useState)("ko");
-    const [progress, setProgress] = (0, import_react10.useState)(-1);
-    const [stage, setStage] = (0, import_react10.useState)("\uB300\uAE30 \uC911");
-    const [error, setError] = (0, import_react10.useState)(null);
-    const [activeBlockId, setActiveBlockId] = (0, import_react10.useState)(null);
-    const [chatVisible, setChatVisible] = (0, import_react10.useState)(true);
-    const [chatExpanded, setChatExpanded] = (0, import_react10.useState)(false);
-    const [chatMessages, setChatMessages] = (0, import_react10.useState)([]);
-    const [chatLoading, setChatLoading] = (0, import_react10.useState)(false);
-    const [settingsOpen, setSettingsOpen] = (0, import_react10.useState)(false);
-    const [selectedFile, setSelectedFile] = (0, import_react10.useState)(null);
-    const [fileHighlight, setFileHighlight] = (0, import_react10.useState)(null);
+    const [analysis, setAnalysis] = (0, import_react9.useState)(null);
+    const [llmConfig, setLlmConfig] = (0, import_react9.useState)(DEFAULT_LLM_CONFIG);
+    const [connectionOk, setConnectionOk] = (0, import_react9.useState)(false);
+    const [language, setLanguage] = (0, import_react9.useState)("ko");
+    const [progress, setProgress] = (0, import_react9.useState)(-1);
+    const [stage, setStage] = (0, import_react9.useState)("\uB300\uAE30 \uC911");
+    const [error, setError] = (0, import_react9.useState)(null);
+    const [activeBlockId, setActiveBlockId] = (0, import_react9.useState)(null);
+    const [chatVisible, setChatVisible] = (0, import_react9.useState)(true);
+    const [chatExpanded, setChatExpanded] = (0, import_react9.useState)(false);
+    const [chatHeight, setChatHeight] = (0, import_react9.useState)(300);
+    const [chatResizing, setChatResizing] = (0, import_react9.useState)(false);
+    const [chatMessages, setChatMessages] = (0, import_react9.useState)([]);
+    const [chatLoading, setChatLoading] = (0, import_react9.useState)(false);
+    const [settingsOpen, setSettingsOpen] = (0, import_react9.useState)(false);
+    const [selectedFile, setSelectedFile] = (0, import_react9.useState)(null);
+    const [fileHighlight, setFileHighlight] = (0, import_react9.useState)(null);
+    const chatResizeStart = (0, import_react9.useRef)({ pointerY: 0, height: 300 });
     const mappingTable = analysis?.mappingTable ?? [];
     const { highlighted, setHighlighted, findBest } = useMapping(mappingTable);
-    const onMessage = (0, import_react10.useCallback)(
+    const onMessage = (0, import_react9.useCallback)(
       (event) => {
         switch (event.type) {
           case "llmConfig": {
@@ -22429,7 +22616,12 @@
             const payload = event.payload;
             setChatMessages((prev) => [
               ...prev,
-              { role: "assistant", content: payload.message, timestamp: Date.now() }
+              {
+                role: "assistant",
+                content: payload.message,
+                timestamp: Date.now(),
+                modelLabel: payload.modelLabel
+              }
             ]);
             setChatLoading(false);
             break;
@@ -22446,7 +22638,7 @@
       [setHighlighted]
     );
     const { postMessage } = useVSCodeAPI(onMessage);
-    (0, import_react10.useEffect)(() => {
+    (0, import_react9.useEffect)(() => {
       if (!highlighted) return;
       const timer = window.setTimeout(() => setHighlighted(null), 4e3);
       return () => window.clearTimeout(timer);
@@ -22506,12 +22698,47 @@
         });
       }
     }
+    function handleReanalyze(config, secrets) {
+      setLlmConfig(config);
+      setLanguage(config.language ?? "ko");
+      setError(null);
+      setStage("preparing_reanalysis");
+      setProgress(1);
+      postMessage({
+        type: "reanalyze",
+        payload: { config, secrets }
+      });
+    }
     function dismissOverlay() {
       setError(null);
       if (progress < 100) setProgress(100);
     }
+    function handleChatResizeStart(event) {
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      chatResizeStart.current = { pointerY: event.clientY, height: chatHeight };
+      setChatResizing(true);
+    }
+    function maxChatHeight() {
+      return Math.max(220, Math.floor(window.innerHeight * 0.75));
+    }
+    function clampChatHeight(height) {
+      return Math.min(maxChatHeight(), Math.max(180, height));
+    }
+    function handleChatResizeMove(event) {
+      if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+      const delta = chatResizeStart.current.pointerY - event.clientY;
+      setChatHeight(clampChatHeight(chatResizeStart.current.height + delta));
+    }
+    function handleChatResizeEnd(event) {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      setChatResizing(false);
+    }
     const showOverlay = progress >= 0 && progress < 100 || !!error;
-    return /* @__PURE__ */ import_react10.default.createElement("div", { className: "app-root" }, /* @__PURE__ */ import_react10.default.createElement("header", { className: "mock-titlebar" }, /* @__PURE__ */ import_react10.default.createElement("div", { className: "mock-tab" }, /* @__PURE__ */ import_react10.default.createElement("span", { className: "mock-tab-icon" }, "\u2261"), "AI PR Insight", analysis?.prMeta?.prNumber != null ? `: PR #${analysis.prMeta.prNumber}` : ""), /* @__PURE__ */ import_react10.default.createElement("div", { className: "titlebar-actions" }, /* @__PURE__ */ import_react10.default.createElement("div", { className: "llm-status-badge", title: "LLM connection status" }, /* @__PURE__ */ import_react10.default.createElement("div", { className: `llm-dot ${error ? "llm-dot-off" : ""}` })), /* @__PURE__ */ import_react10.default.createElement(
+    const modelLabel = selectedModelName(llmConfig);
+    return /* @__PURE__ */ import_react9.default.createElement("div", { className: "app-root" }, /* @__PURE__ */ import_react9.default.createElement("header", { className: "mock-titlebar" }, /* @__PURE__ */ import_react9.default.createElement("div", { className: "mock-tab" }, /* @__PURE__ */ import_react9.default.createElement("span", { className: "mock-tab-icon" }, "\u2261"), "AI PR Insight", analysis?.prMeta?.prNumber != null ? `: PR #${analysis.prMeta.prNumber}` : ""), /* @__PURE__ */ import_react9.default.createElement("div", { className: "titlebar-actions" }, /* @__PURE__ */ import_react9.default.createElement("div", { className: "llm-status-badge", title: "LLM connection status" }, /* @__PURE__ */ import_react9.default.createElement("div", { className: `llm-dot ${error ? "llm-dot-off" : ""}` })), /* @__PURE__ */ import_react9.default.createElement(
       "button",
       {
         className: "icon-btn top-icon-btn",
@@ -22519,8 +22746,8 @@
         title: "AI PR Insight \uC124\uC815",
         "aria-label": "AI PR Insight \uC124\uC815"
       },
-      /* @__PURE__ */ import_react10.default.createElement("svg", { viewBox: "0 0 16 16", "aria-hidden": "true" }, /* @__PURE__ */ import_react10.default.createElement("path", { d: "M6.7 1.7h2.6l.4 1.6 1.4.6 1.5-.8 1.3 2.2-1.2 1.1.1 1.6 1.3 1-1.3 2.2-1.6-.5-1.3.8-.4 1.6H6.7l-.4-1.6-1.3-.8-1.6.5-1.3-2.2 1.3-1 .1-1.6-1.2-1.1 1.3-2.2 1.5.8 1.4-.6.4-1.6z" }), /* @__PURE__ */ import_react10.default.createElement("circle", { cx: "8", cy: "8", r: "2.2" }))
-    ), /* @__PURE__ */ import_react10.default.createElement(
+      /* @__PURE__ */ import_react9.default.createElement("svg", { viewBox: "0 0 16 16", "aria-hidden": "true" }, /* @__PURE__ */ import_react9.default.createElement("path", { d: "M6.7 1.7h2.6l.4 1.6 1.4.6 1.5-.8 1.3 2.2-1.2 1.1.1 1.6 1.3 1-1.3 2.2-1.6-.5-1.3.8-.4 1.6H6.7l-.4-1.6-1.3-.8-1.6.5-1.3-2.2 1.3-1 .1-1.6-1.2-1.1 1.3-2.2 1.5.8 1.4-.6.4-1.6z" }), /* @__PURE__ */ import_react9.default.createElement("circle", { cx: "8", cy: "8", r: "2.2" }))
+    ), /* @__PURE__ */ import_react9.default.createElement(
       "button",
       {
         className: `icon-btn top-icon-btn ${chatVisible ? "top-btn-active" : ""}`,
@@ -22531,8 +22758,8 @@
         title: "Chat \uD328\uB110 \uD1A0\uAE00",
         "aria-label": "Chat \uD328\uB110 \uD1A0\uAE00"
       },
-      /* @__PURE__ */ import_react10.default.createElement("svg", { viewBox: "0 0 16 16", "aria-hidden": "true" }, /* @__PURE__ */ import_react10.default.createElement("path", { d: "M3 3.5h10a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 13 12H7l-3.5 2v-2H3a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 3 3.5z" }), /* @__PURE__ */ import_react10.default.createElement("path", { d: "M4.5 6.2h7M4.5 8.7h5" }))
-    ))), /* @__PURE__ */ import_react10.default.createElement("div", { className: "split-container" }, /* @__PURE__ */ import_react10.default.createElement("div", { className: "panel-left" }, /* @__PURE__ */ import_react10.default.createElement(
+      /* @__PURE__ */ import_react9.default.createElement("svg", { viewBox: "0 0 16 16", "aria-hidden": "true" }, /* @__PURE__ */ import_react9.default.createElement("path", { d: "M3 3.5h10a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 13 12H7l-3.5 2v-2H3a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 3 3.5z" }), /* @__PURE__ */ import_react9.default.createElement("path", { d: "M4.5 6.2h7M4.5 8.7h5" }))
+    ))), /* @__PURE__ */ import_react9.default.createElement("div", { className: "split-container" }, /* @__PURE__ */ import_react9.default.createElement("div", { className: "panel-left" }, /* @__PURE__ */ import_react9.default.createElement(
       "div",
       {
         className: "panel-scroll",
@@ -22540,14 +22767,14 @@
           postMessage({ type: "clearHighlight" });
         }
       },
-      analysis ? /* @__PURE__ */ import_react10.default.createElement(import_react10.default.Fragment, null, /* @__PURE__ */ import_react10.default.createElement(
+      analysis ? /* @__PURE__ */ import_react9.default.createElement(import_react9.default.Fragment, null, /* @__PURE__ */ import_react9.default.createElement(
         PRSummaryBanner,
         {
           text: analysis.prSummary,
           prMeta: analysis.prMeta,
           files: analysis.files
         }
-      ), /* @__PURE__ */ import_react10.default.createElement(
+      ), /* @__PURE__ */ import_react9.default.createElement(
         CallGraphView,
         {
           callGraph: analysis.callGraph,
@@ -22558,17 +22785,8 @@
           onSentenceDrag: handleSentenceDrag,
           onBlockClick: handleBlockClick
         }
-      ), /* @__PURE__ */ import_react10.default.createElement(
-        StepByStepAnalysis,
-        {
-          blocks: analysis.summaryBlocks,
-          activeBlockId,
-          highlightedSentence: highlighted,
-          onSentenceDrag: handleSentenceDrag,
-          onBlockClick: handleBlockClick
-        }
-      )) : /* @__PURE__ */ import_react10.default.createElement("section", { className: "card empty-state" }, /* @__PURE__ */ import_react10.default.createElement("div", { className: "empty-icon" }, "\u25C8"), /* @__PURE__ */ import_react10.default.createElement("p", { className: "muted" }, progress < 0 ? "\uBD84\uC11D\uC744 \uC2DC\uC791\uD558\uB824\uBA74 Command Palette\uC5D0\uC11C\n'AI PR Insight: Analyze Pull Request'\uB97C \uC2E4\uD589\uD558\uC138\uC694." : "\uBD84\uC11D \uC911\uC785\uB2C8\uB2E4..."))
-    )), /* @__PURE__ */ import_react10.default.createElement("div", { className: "panel-right" }, /* @__PURE__ */ import_react10.default.createElement(
+      )) : /* @__PURE__ */ import_react9.default.createElement("section", { className: "card empty-state" }, /* @__PURE__ */ import_react9.default.createElement("div", { className: "empty-icon" }, "\u25C8"), /* @__PURE__ */ import_react9.default.createElement("p", { className: "muted" }, progress < 0 ? "\uBD84\uC11D\uC744 \uC2DC\uC791\uD558\uB824\uBA74 Command Palette\uC5D0\uC11C\n'AI PR Insight: Analyze Pull Request'\uB97C \uC2E4\uD589\uD558\uC138\uC694." : "\uBD84\uC11D \uC911\uC785\uB2C8\uB2E4..."))
+    )), /* @__PURE__ */ import_react9.default.createElement("div", { className: "panel-right" }, /* @__PURE__ */ import_react9.default.createElement(
       FileViewer,
       {
         files: analysis?.files ?? [],
@@ -22580,16 +22798,57 @@
         highlightRange: fileHighlight,
         onRequestComment: handleRequestComment
       }
-    ))), chatVisible && /* @__PURE__ */ import_react10.default.createElement("div", { className: `chat-drawer ${chatExpanded ? "chat-drawer-expanded" : "chat-drawer-collapsed"}` }, /* @__PURE__ */ import_react10.default.createElement(
-      ChatPanel,
+    ))), chatVisible && /* @__PURE__ */ import_react9.default.createElement(
+      "div",
       {
-        messages: chatMessages,
-        onSend: handleChatSend,
-        loading: chatLoading,
-        expanded: chatExpanded,
-        onToggleExpand: () => setChatExpanded((prev) => !prev)
-      }
-    )), /* @__PURE__ */ import_react10.default.createElement(
+        className: `chat-drawer ${chatExpanded ? "chat-drawer-expanded" : "chat-drawer-collapsed"} ${chatResizing ? "chat-drawer-resizing" : ""}`,
+        style: chatExpanded ? { height: chatHeight } : void 0
+      },
+      chatExpanded && /* @__PURE__ */ import_react9.default.createElement(
+        "div",
+        {
+          className: "chat-resize-handle",
+          role: "separator",
+          "aria-label": "\uCC44\uD305\uCC3D \uB192\uC774 \uC870\uC808",
+          "aria-orientation": "horizontal",
+          "aria-valuemin": 180,
+          "aria-valuemax": maxChatHeight(),
+          "aria-valuenow": chatHeight,
+          tabIndex: 0,
+          title: "\uB4DC\uB798\uADF8\uD558\uC5EC \uCC44\uD305\uCC3D \uB192\uC774 \uC870\uC808",
+          onPointerDown: handleChatResizeStart,
+          onPointerMove: handleChatResizeMove,
+          onPointerUp: handleChatResizeEnd,
+          onPointerCancel: handleChatResizeEnd,
+          onKeyDown: (event) => {
+            if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+              event.preventDefault();
+              setChatHeight((height) => clampChatHeight(
+                height + (event.key === "ArrowUp" ? 24 : -24)
+              ));
+            } else if (event.key === "Home") {
+              event.preventDefault();
+              setChatHeight(180);
+            } else if (event.key === "End") {
+              event.preventDefault();
+              setChatHeight(maxChatHeight());
+            }
+          },
+          onDoubleClick: () => setChatHeight(300)
+        }
+      ),
+      /* @__PURE__ */ import_react9.default.createElement(
+        ChatPanel,
+        {
+          messages: chatMessages,
+          onSend: handleChatSend,
+          loading: chatLoading,
+          expanded: chatExpanded,
+          modelLabel,
+          onToggleExpand: () => setChatExpanded((prev) => !prev)
+        }
+      )
+    ), /* @__PURE__ */ import_react9.default.createElement(
       ProgressOverlay,
       {
         visible: showOverlay && !error,
@@ -22598,31 +22857,33 @@
         error,
         onDismiss: dismissOverlay
       }
-    ), settingsOpen && /* @__PURE__ */ import_react10.default.createElement(
+    ), settingsOpen && /* @__PURE__ */ import_react9.default.createElement(
       LLMSettingsPanel,
       {
         config: { ...llmConfig, language },
         connected: connectionOk && !error,
+        canReanalyze: analysis != null,
         onClose: () => setSettingsOpen(false),
         onSave: handleSettingsSave,
+        onReanalyze: handleReanalyze,
         onTestConnection: (config) => postMessage({ type: "testConnection", payload: config })
       }
     ));
   }
-  var import_react10, DEFAULT_LLM_CONFIG;
+  var import_react9, DEFAULT_LLM_CONFIG;
   var init_App = __esm({
     "webview-ui/src/App.tsx"() {
       "use strict";
-      import_react10 = __toESM(require_react());
+      import_react9 = __toESM(require_react());
       init_CallGraphView();
       init_ChatPanel();
       init_FileViewer();
       init_LLMSettingsPanel();
       init_PRSummaryBanner();
       init_ProgressOverlay();
-      init_StepByStepAnalysis();
       init_useMapping();
       init_useVSCodeAPI();
+      init_llmDisplay();
       init_global();
       DEFAULT_LLM_CONFIG = {
         provider: "gemini",
@@ -22631,7 +22892,8 @@
         chatgptModel: "gpt-5.5",
         ollamaEndpoint: "http://localhost:11434",
         ollamaModel: "llama3",
-        language: "ko"
+        language: "ko",
+        additionalSystemPrompt: ""
       };
     }
   });
@@ -22639,12 +22901,12 @@
   // webview-ui/src/index.tsx
   var require_index = __commonJS({
     "webview-ui/src/index.tsx"() {
-      var import_react11 = __toESM(require_react());
+      var import_react10 = __toESM(require_react());
       var import_client = __toESM(require_client());
       init_App();
       var root = document.getElementById("root");
       if (root) {
-        (0, import_client.createRoot)(root).render(/* @__PURE__ */ import_react11.default.createElement(App, null));
+        (0, import_client.createRoot)(root).render(/* @__PURE__ */ import_react10.default.createElement(App, null));
       }
     }
   });

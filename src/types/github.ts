@@ -24,3 +24,21 @@ export interface PRDiffResult {
   files: PRFile[];
   comments: PRComment[];
 }
+
+export interface GitHubRepositoryRef {
+  owner: string;
+  repo: string;
+  rootUri: string;
+  remoteName: string;
+}
+
+export interface PullRequestListItem {
+  number: number;
+  title: string;
+  author: string;
+  isDraft: boolean;
+  headBranch: string;
+  baseBranch: string;
+  updatedAt: string;
+  url: string;
+}

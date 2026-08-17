@@ -1,14 +1,20 @@
 import * as vscode from "vscode";
 import {
   analyzePRCommand,
+  analyzeSelectedPR,
   bindWebviewHandlers,
   setLLMApiKeyCommand,
   setLLMModelCommand,
   setLLMProviderCommand,
-  setGitHubTokenCommand,
 } from "./commands/analyzePR";
 import { EditorController } from "./editor/EditorController";
 import { ASTParser } from "./analysis/ASTParser";
+import { RepoResolver } from "./github/RepoResolver";
+import { setGitHubTokenCommand } from "./github/auth";
+import {
+  OpenPullRequestsProvider,
+  PullRequestTreeItem,
+} from "./sidebar/OpenPullRequestsProvider";
 import { getLogger } from "./utils/logger";
 import { WebviewProvider } from "./webview/WebviewProvider";
 
@@ -16,6 +22,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const log = getLogger();
   const webviewProvider = new WebviewProvider(context.extensionUri);
   const editorController = new EditorController();
+  const repoResolver = new RepoResolver();
+  const pullRequestsProvider = new OpenPullRequestsProvider(context, repoResolver);
 
   log.appendLine("[Extension] AI PR Insight activated");
 
@@ -37,7 +45,31 @@ export function activate(context: vscode.ExtensionContext): void {
   const setTokenDisposable = vscode.commands.registerCommand(
     "ai-pr-insight.setGitHubToken",
     async () => {
-      await setGitHubTokenCommand(context);
+      if (await setGitHubTokenCommand(context)) {
+        pullRequestsProvider.refresh();
+      }
+    }
+  );
+
+  const refreshPullRequestsDisposable = vscode.commands.registerCommand(
+    "ai-pr-insight.refreshPullRequests",
+    () => pullRequestsProvider.refresh()
+  );
+
+  const analyzeSelectedPRDisposable = vscode.commands.registerCommand(
+    "ai-pr-insight.analyzeSelectedPR",
+    async (item: PullRequestTreeItem) => {
+      if (!item) return;
+      log.appendLine(
+        `[Command] Analyze selected PR triggered: ${item.owner}/${item.repo}#${item.prNumber}`
+      );
+      await analyzeSelectedPR(
+        context,
+        webviewProvider,
+        editorController,
+        { owner: item.owner, repo: item.repo },
+        item.prNumber
+      );
     }
   );
 
@@ -62,12 +94,22 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   );
 
+  const pullRequestsTree = vscode.window.registerTreeDataProvider(
+    "ai-pr-insight.openPullRequests",
+    pullRequestsProvider
+  );
+
   context.subscriptions.push(
     analyzePRDisposable,
+    analyzeSelectedPRDisposable,
+    refreshPullRequestsDisposable,
     setTokenDisposable,
     setLLMApiKeyDisposable,
     setLLMProviderDisposable,
-    setLLMModelDisposable
+    setLLMModelDisposable,
+    pullRequestsTree,
+    pullRequestsProvider,
+    repoResolver
   );
 }
 

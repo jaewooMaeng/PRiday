@@ -6,10 +6,18 @@ interface Props {
   onSend: (message: string) => void;
   loading: boolean;
   expanded: boolean;
+  modelLabel: string;
   onToggleExpand: () => void;
 }
 
-export function ChatPanel({ messages, onSend, loading, expanded, onToggleExpand }: Props): JSX.Element {
+export function ChatPanel({
+  messages,
+  onSend,
+  loading,
+  expanded,
+  modelLabel,
+  onToggleExpand,
+}: Props): React.JSX.Element {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -47,7 +55,7 @@ export function ChatPanel({ messages, onSend, loading, expanded, onToggleExpand 
             <path d="M5 6.5h6M5 8.8h4" />
           </svg>
         </span>
-        <span className="chat-header-label">Ask AI</span>
+        <span className="chat-header-label">{modelLabel}</span>
         {messages.length > 0 && (
           <span className="chat-msg-count">{messages.length}</span>
         )}
@@ -72,14 +80,14 @@ export function ChatPanel({ messages, onSend, loading, expanded, onToggleExpand 
               className={`chat-bubble ${msg.role === "user" ? "chat-user" : "chat-assistant"}`}
             >
               <div className="chat-role">
-                {msg.role === "user" ? "You" : "AI"}
+                {msg.role === "user" ? "You" : (msg.modelLabel ?? modelLabel)}
               </div>
               <div className="chat-content">{msg.content}</div>
             </div>
           ))}
           {loading && (
             <div className="chat-bubble chat-assistant">
-              <div className="chat-role">AI</div>
+              <div className="chat-role">{modelLabel}</div>
               <div className="chat-content chat-loading">
                 <span className="dot-pulse" />
               </div>

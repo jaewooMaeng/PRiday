@@ -11,11 +11,27 @@
     "Other"
   ],
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "onView:ai-pr-insight.openPullRequests"
+  ],
+  "extensionDependencies": [
+    "vscode.git"
+  ],
   "contributes": {
     "commands": [
       {
         "command": "ai-pr-insight.analyzePR",
         "title": "AI PR Insight: Analyze Pull Request"
+      },
+      {
+        "command": "ai-pr-insight.analyzeSelectedPR",
+        "title": "analyzePR",
+        "icon": "$(play)"
+      },
+      {
+        "command": "ai-pr-insight.refreshPullRequests",
+        "title": "Refresh Pull Requests",
+        "icon": "$(refresh)"
       },
       {
         "command": "ai-pr-insight.setGitHubToken",
@@ -34,6 +50,39 @@
         "title": "AI PR Insight: Set LLM Model"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ai-pr-insight",
+          "title": "AI PR Insight",
+          "icon": "resources/ai-pr-insight.svg"
+        }
+      ]
+    },
+    "views": {
+      "ai-pr-insight": [
+        {
+          "id": "ai-pr-insight.openPullRequests",
+          "name": "Open Pull Requests"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "ai-pr-insight.refreshPullRequests",
+          "when": "view == ai-pr-insight.openPullRequests",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "ai-pr-insight.analyzeSelectedPR",
+          "when": "view == ai-pr-insight.openPullRequests && viewItem == openPullRequest",
+          "group": "inline@100"
+        }
+      ]
+    },
     "configuration": {
       "title": "AI PR Insight",
       "properties": {
@@ -79,6 +128,12 @@
           "enum": ["en", "ko"],
           "enumDescriptions": ["English", "한국어"],
           "description": "Language for LLM analysis output"
+        },
+        "aiPrInsight.llm.additionalSystemPrompt": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Additional workspace-specific criteria applied to PR analysis"
         }
       }
     }

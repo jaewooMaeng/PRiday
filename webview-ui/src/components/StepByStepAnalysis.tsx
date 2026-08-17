@@ -21,7 +21,7 @@ export function StepByStepAnalysis({
   highlightedSentence,
   onSentenceDrag,
   onBlockClick,
-}: Props): JSX.Element {
+}: Props): React.JSX.Element {
   const [collapsedSnippets, setCollapsedSnippets] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
 

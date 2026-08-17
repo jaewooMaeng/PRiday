@@ -155,10 +155,10 @@ __export(extension_exports, {
   deactivate: () => deactivate
 });
 module.exports = __toCommonJS(extension_exports);
-var vscode5 = __toESM(require("vscode"));
+var vscode8 = __toESM(require("vscode"));
 
 // src/commands/analyzePR.ts
-var vscode2 = __toESM(require("vscode"));
+var vscode3 = __toESM(require("vscode"));
 
 // src/analysis/ASTParser.ts
 var TreeSitterParser = null;
@@ -4193,6 +4193,26 @@ var GitHubClient = class {
   constructor(token) {
     this.octokit = new Octokit2({ auth: token });
   }
+  async listOpenPullRequests(owner, repo) {
+    const pulls = await this.octokit.paginate(this.octokit.pulls.list, {
+      owner,
+      repo,
+      state: "open",
+      sort: "updated",
+      direction: "desc",
+      per_page: 100
+    });
+    return pulls.map((pull) => ({
+      number: pull.number,
+      title: pull.title,
+      author: pull.user?.login ?? "unknown",
+      isDraft: pull.draft ?? false,
+      headBranch: pull.head.ref,
+      baseBranch: pull.base.ref,
+      updatedAt: pull.updated_at,
+      url: pull.html_url
+    }));
+  }
   async fetchPRDiff(owner, repo, pullNumber) {
     const prResponse = await this.octokit.pulls.get({ owner, repo, pull_number: pullNumber });
     const remaining = Number(prResponse.headers?.["x-ratelimit-remaining"] ?? "1");
@@ -4302,6 +4322,34 @@ var GitHubClient = class {
   }
 };
 
+// src/github/auth.ts
+var vscode2 = __toESM(require("vscode"));
+var GITHUB_TOKEN_KEY = "aiPrInsight.githubToken";
+async function getStoredGitHubToken(context) {
+  return context.secrets.get(GITHUB_TOKEN_KEY);
+}
+async function promptForGitHubToken(context) {
+  const token = await vscode2.window.showInputBox({
+    title: "GitHub Personal Access Token",
+    prompt: "GitHub PAT\uB97C \uC785\uB825\uD558\uC138\uC694 (repo scope \uAD8C\uC7A5)",
+    password: true,
+    ignoreFocusOut: true
+  });
+  if (!token?.trim()) return void 0;
+  const normalizedToken = token.trim();
+  await context.secrets.store(GITHUB_TOKEN_KEY, normalizedToken);
+  return normalizedToken;
+}
+async function getOrCreateGitHubToken(context) {
+  return await getStoredGitHubToken(context) ?? promptForGitHubToken(context);
+}
+async function setGitHubTokenCommand(context) {
+  const token = await promptForGitHubToken(context);
+  if (!token) return false;
+  vscode2.window.showInformationMessage("GitHub \uD1A0\uD070\uC744 \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
+  return true;
+}
+
 // src/llm/LLMClient.ts
 init_logger();
 
@@ -4312,7 +4360,7 @@ function langInstruction(language) {
   }
   return "\nIMPORTANT: Write ALL text fields (summary, explanation, bulletPoints, title, prSummary, keyChanges) in English.\n";
 }
-function buildAnalysisPrompt(diff, language) {
+function buildAnalysisPrompt(diff, language, additionalSystemPrompt) {
   const commentsText = diff.comments.length === 0 ? "No comments" : diff.comments.map((comment) => {
     const target = comment.path ? ` (${comment.path}${comment.line ? `:${comment.line}` : ""})` : "";
     return `[${comment.source}] ${comment.author}${target}: ${comment.body}`;
@@ -4324,6 +4372,14 @@ ${file.patch}
 --- Full content (after change): ---
 ${file.rawContent}`
   ).join("\n\n");
+  const additionalCriteria = additionalSystemPrompt?.trim() ? `
+ADDITIONAL REVIEW CRITERIA:
+The reviewer supplied the following workspace-specific criteria. Apply them in addition to the guidelines above.
+They do not override the required JSON schema or output-language instruction.
+--- Begin additional criteria ---
+${additionalSystemPrompt.trim()}
+--- End additional criteria ---
+` : "";
   return `You are a code analysis assistant. Analyze the given Pull Request diff and return a structured JSON response.
 ${langInstruction(language)}
 Your response MUST be valid JSON matching the following schema exactly.
@@ -4338,8 +4394,9 @@ IMPORTANT analysis guidelines:
 - Group related code into meaningful "code blocks" \u2014 not necessarily one function per block. A block can span multiple small functions or a section of a larger function if they form a logical unit.
 - For utility/helper functions, set depth=1 and parentId to link them to the main flow block that calls them.
 - depth=0 blocks represent the main execution flow. depth=1 blocks are details shown on demand.
-- Write the "explanation" field as bullet points: each point on its own line, starting with "- ". Each bullet should describe one specific aspect of the code block (e.g. a function, a condition, a variable). Do NOT write prose paragraphs.
-- For EACH bullet point in the explanation, add a matching entry in "codeReferences" with the 0-based sentenceIndex, the exact target function/variable/class name, and the precise lineStart/lineEnd in the file. This enables fine-grained code-comment mapping.
+- Write the "explanation" field as natural review prose or concise bullets, whichever is easier to understand for the code block. Avoid keyword-only phrases, tag-like fragments, or speech-bubble style copy.
+- For each sentence or bullet in the explanation, add a matching entry in "codeReferences" with the 0-based sentenceIndex, the exact target function/variable/class name, and the precise lineStart/lineEnd in the file. This enables fine-grained code-comment mapping.
+${additionalCriteria}
 
 Response JSON Schema:
 {
@@ -4383,7 +4440,7 @@ Response JSON Schema:
       "codeSnippet": "string (relevant code block, max 20 lines)",
       "lineRange": { "start": 1, "end": 1 },
       "filename": "string",
-      "explanation": "string (bullet points, each line starting with '- ')",
+      "explanation": "string (natural prose or concise bullets)",
       "keyChanges": ["string"],
       "depth": 0,
       "parentId": "string or null",
@@ -10429,7 +10486,7 @@ var LLMClient = class {
   parser = new ResponseParser();
   async analyze(diff, config) {
     const log = getLogger();
-    const prompt = buildAnalysisPrompt(diff, config.language);
+    const prompt = buildAnalysisPrompt(diff, config.language, config.additionalSystemPrompt);
     log.appendLine(`[LLM] Provider: ${config.provider}`);
     log.appendLine(`[LLM] Prompt length: ${prompt.length} chars`);
     let rawResponse = "";
@@ -10493,25 +10550,13 @@ function startTimer(label) {
 }
 
 // src/commands/analyzePR.ts
-var GITHUB_TOKEN_KEY = "aiPrInsight.githubToken";
 var GEMINI_API_KEY = "aiPrInsight.geminiApiKey";
 var CLAUDE_API_KEY = "aiPrInsight.claudeApiKey";
 var OPENAI_API_KEY = "aiPrInsight.openaiApiKey";
 var CUSTOM_MODEL_OPTION = "$(edit) \uC9C1\uC811 \uC785\uB825";
 var session;
-async function setGitHubTokenCommand(context) {
-  const token = await vscode2.window.showInputBox({
-    title: "GitHub Personal Access Token",
-    prompt: "GitHub PAT\uB97C \uC785\uB825\uD558\uC138\uC694 (repo scope \uAD8C\uC7A5)",
-    password: true,
-    ignoreFocusOut: true
-  });
-  if (!token) return;
-  await context.secrets.store(GITHUB_TOKEN_KEY, token.trim());
-  vscode2.window.showInformationMessage("GitHub \uD1A0\uD070\uC744 \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
-}
 async function setGeminiApiKeyCommand(context) {
-  const apiKey = await vscode2.window.showInputBox({
+  const apiKey = await vscode3.window.showInputBox({
     title: "Gemini API Key",
     prompt: "Gemini API \uD0A4\uB97C \uC785\uB825\uD558\uC138\uC694",
     password: true,
@@ -10519,10 +10564,10 @@ async function setGeminiApiKeyCommand(context) {
   });
   if (!apiKey) return;
   await context.secrets.store(GEMINI_API_KEY, apiKey.trim());
-  vscode2.window.showInformationMessage("Gemini API \uD0A4\uB97C \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
+  vscode3.window.showInformationMessage("Gemini API \uD0A4\uB97C \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
 }
 async function setClaudeApiKeyCommand(context) {
-  const apiKey = await vscode2.window.showInputBox({
+  const apiKey = await vscode3.window.showInputBox({
     title: "Claude API Key",
     prompt: "Claude API \uD0A4\uB97C \uC785\uB825\uD558\uC138\uC694",
     password: true,
@@ -10530,10 +10575,10 @@ async function setClaudeApiKeyCommand(context) {
   });
   if (!apiKey) return;
   await context.secrets.store(CLAUDE_API_KEY, apiKey.trim());
-  vscode2.window.showInformationMessage("Claude API \uD0A4\uB97C \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
+  vscode3.window.showInformationMessage("Claude API \uD0A4\uB97C \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
 }
 async function setOpenAIApiKeyCommand(context) {
-  const apiKey = await vscode2.window.showInputBox({
+  const apiKey = await vscode3.window.showInputBox({
     title: "ChatGPT API Key",
     prompt: "ChatGPT API \uD0A4\uB97C \uC785\uB825\uD558\uC138\uC694",
     password: true,
@@ -10541,14 +10586,14 @@ async function setOpenAIApiKeyCommand(context) {
   });
   if (!apiKey) return;
   await context.secrets.store(OPENAI_API_KEY, apiKey.trim());
-  vscode2.window.showInformationMessage("ChatGPT API \uD0A4\uB97C \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
+  vscode3.window.showInformationMessage("ChatGPT API \uD0A4\uB97C \uC548\uC804\uD558\uAC8C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4.");
 }
 async function setLLMApiKeyCommand(context) {
-  const provider = vscode2.workspace.getConfiguration("aiPrInsight.llm").get("provider", "gemini");
+  const provider = vscode3.workspace.getConfiguration("aiPrInsight.llm").get("provider", "gemini");
   await setApiKeyForProvider(context, provider);
 }
 async function setLLMProviderCommand(context) {
-  const selected = await vscode2.window.showQuickPick(
+  const selected = await vscode3.window.showQuickPick(
     [
       { label: "Ollama", value: "ollama" },
       { label: "Gemini", value: "gemini" },
@@ -10563,10 +10608,10 @@ async function setLLMProviderCommand(context) {
   if (!selected) return;
   await saveLLMConfig({ provider: selected.value });
   await promptForMissingApiKey(context, selected.value);
-  vscode2.window.showInformationMessage(`LLM provider\uAC00 ${selected.label}(\uC73C)\uB85C \uC124\uC815\uB418\uC5C8\uC2B5\uB2C8\uB2E4.`);
+  vscode3.window.showInformationMessage(`LLM provider\uAC00 ${selected.label}(\uC73C)\uB85C \uC124\uC815\uB418\uC5C8\uC2B5\uB2C8\uB2E4.`);
 }
 async function setLLMModelCommand() {
-  const conf = vscode2.workspace.getConfiguration("aiPrInsight.llm");
+  const conf = vscode3.workspace.getConfiguration("aiPrInsight.llm");
   const provider = conf.get("provider", "gemini");
   const modelSetting = getModelSettingName(provider);
   const currentModel = conf.get(modelSetting, getDefaultModelForProvider(provider));
@@ -10581,12 +10626,12 @@ async function setLLMModelCommand() {
       description: "\uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uBAA8\uB378\uBA85\uC744 \uC785\uB825\uD569\uB2C8\uB2E4"
     }
   ];
-  const selected = await vscode2.window.showQuickPick(modelOptions, {
+  const selected = await vscode3.window.showQuickPick(modelOptions, {
     title: `${getProviderLabel(provider)} Model \uC120\uD0DD`,
     placeHolder: `\uD604\uC7AC ${getProviderLabel(provider)} \uBAA8\uB378: ${currentModel}`
   });
   if (!selected) return;
-  const model = selected.model ?? await vscode2.window.showInputBox({
+  const model = selected.model ?? await vscode3.window.showInputBox({
     title: `${getProviderLabel(provider)} Model \uC9C1\uC811 \uC785\uB825`,
     prompt: "\uC0AC\uC6A9\uD560 \uBAA8\uB378\uBA85\uC744 \uC785\uB825\uD558\uC138\uC694",
     placeHolder: currentModel,
@@ -10596,32 +10641,41 @@ async function setLLMModelCommand() {
   });
   if (!model) return;
   const trimmedModel = model.trim();
-  await conf.update(modelSetting, trimmedModel, vscode2.ConfigurationTarget.Global);
-  vscode2.window.showInformationMessage(
+  await conf.update(modelSetting, trimmedModel, vscode3.ConfigurationTarget.Global);
+  vscode3.window.showInformationMessage(
     `${getProviderLabel(provider)} \uBAA8\uB378\uC774 ${trimmedModel}(\uC73C)\uB85C \uC124\uC815\uB418\uC5C8\uC2B5\uB2C8\uB2E4.`
   );
 }
 async function analyzePRCommand(context, webviewProvider, editorController) {
-  const config = await loadLLMConfig(context);
   const repoInput = await askRepository();
   if (!repoInput) return;
   const prNumberText = await askPRNumber();
   if (!prNumberText) return;
-  webviewProvider.show(prNumberText);
+  await analyzeSelectedPR(
+    context,
+    webviewProvider,
+    editorController,
+    repoInput,
+    Number(prNumberText)
+  );
+}
+async function analyzeSelectedPR(context, webviewProvider, editorController, repoInput, prNumber) {
+  const config = await loadLLMConfig(context);
+  webviewProvider.show(String(prNumber));
   webviewProvider.postLLMConfig(config);
   await runFullAnalysis({
     context,
     webviewProvider,
     editorController,
     repoInput,
-    prNumber: Number(prNumberText)
+    prNumber
   });
 }
 async function runFullAnalysis(input) {
   const { context, webviewProvider, repoInput, prNumber } = input;
   const log = getLogger();
   try {
-    const token = await getOrCreateToken(context);
+    const token = await getOrCreateGitHubToken(context);
     if (!token) return;
     webviewProvider.postProgress("fetching_pr", 15);
     const doneFetch = startTimer("GitHub fetch");
@@ -10650,12 +10704,12 @@ async function runFullAnalysis(input) {
     session = { repo: repoInput, prNumber, diff, result, githubToken: token };
     webviewProvider.postAnalysisResult(result);
     webviewProvider.postProgress("building_map", 100);
-    vscode2.window.showInformationMessage(`PR #${prNumber} \uBD84\uC11D \uC644\uB8CC`);
+    vscode3.window.showInformationMessage(`PR #${prNumber} \uBD84\uC11D \uC644\uB8CC`);
   } catch (error) {
     const message = toUserMessage(error);
     log.appendLine(`[Analyze] Error: ${message}`);
     webviewProvider.postError(message);
-    vscode2.window.showErrorMessage(message);
+    vscode3.window.showErrorMessage(message);
   }
 }
 function bindWebviewHandlers(context, webviewProvider, editorController) {
@@ -10673,7 +10727,7 @@ function bindWebviewHandlers(context, webviewProvider, editorController) {
       await saveLLMConfig(payload);
       const updated = await loadLLMConfig(context);
       webviewProvider.postLLMConfig(updated);
-      vscode2.window.showInformationMessage("LLM \uC124\uC815\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      vscode3.window.showInformationMessage("LLM \uC124\uC815\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
     },
     onUpdateSecrets: async (payload) => {
       if (payload.llmApiKey?.trim() && payload.provider) {
@@ -10687,7 +10741,7 @@ function bindWebviewHandlers(context, webviewProvider, editorController) {
       }
       const updated = await loadLLMConfig(context);
       webviewProvider.postLLMConfig(updated);
-      vscode2.window.showInformationMessage("API \uD0A4 \uC124\uC815\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      vscode3.window.showInformationMessage("API \uD0A4 \uC124\uC815\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
     },
     onTestConnection: async (payload) => {
       try {
@@ -10698,15 +10752,30 @@ function bindWebviewHandlers(context, webviewProvider, editorController) {
         await provider.chat("Reply with OK.", "Connection test for AI PR Insight.", config);
         const updated = await loadLLMConfig(context);
         webviewProvider.postLLMConfig(updated);
-        vscode2.window.showInformationMessage("LLM \uC5F0\uACB0 \uD14C\uC2A4\uD2B8\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4.");
+        vscode3.window.showInformationMessage("LLM \uC5F0\uACB0 \uD14C\uC2A4\uD2B8\uC5D0 \uC131\uACF5\uD588\uC2B5\uB2C8\uB2E4.");
       } catch (err) {
         webviewProvider.postError(
           `\uC5F0\uACB0 \uD14C\uC2A4\uD2B8 \uC2E4\uD328: ${err instanceof Error ? err.message : "Unknown error"}`
         );
       }
     },
-    onReanalyze: async () => {
-      if (!session) return;
+    onReanalyze: async (payload) => {
+      await saveLLMConfig(payload.config);
+      if (payload.secrets?.llmApiKey?.trim()) {
+        const keyName = getApiKeySecretName(payload.config.provider);
+        if (keyName) {
+          await context.secrets.store(keyName, payload.secrets.llmApiKey.trim());
+        }
+      }
+      if (payload.secrets?.githubToken?.trim()) {
+        await context.secrets.store(GITHUB_TOKEN_KEY, payload.secrets.githubToken.trim());
+      }
+      const updated = await loadLLMConfig(context);
+      webviewProvider.postLLMConfig(updated);
+      if (!session) {
+        webviewProvider.postError("\uC7AC\uBD84\uC11D\uD560 PR \uC138\uC158\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uBA3C\uC800 PR \uBD84\uC11D\uC744 \uC2E4\uD589\uD574\uC8FC\uC138\uC694.");
+        return;
+      }
       await runFullAnalysis({
         context,
         webviewProvider,
@@ -10719,14 +10788,17 @@ function bindWebviewHandlers(context, webviewProvider, editorController) {
       editorController.clearHighlights();
     },
     onChat: async (payload) => {
+      let modelLabel;
       try {
         const config = await loadLLMConfig(context);
+        modelLabel = getConfiguredModel(config);
         const analysisContext = session ? buildRichChatContext(session) : "No analysis context available.";
         const response = await llm.chat(payload.message, analysisContext, config);
-        webviewProvider.postChatResponse(response);
+        webviewProvider.postChatResponse(response, modelLabel);
       } catch (err) {
         webviewProvider.postChatResponse(
-          `Error: ${err instanceof Error ? err.message : "Unknown error"}`
+          `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
+          modelLabel
         );
       }
     },
@@ -10761,11 +10833,11 @@ function bindWebviewHandlers(context, webviewProvider, editorController) {
           );
         }
         webviewProvider.postCommentResult(true);
-        vscode2.window.showInformationMessage("PR \uCF54\uBA58\uD2B8\uAC00 \uAC8C\uC2DC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        vscode3.window.showInformationMessage("PR \uCF54\uBA58\uD2B8\uAC00 \uAC8C\uC2DC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Unknown error";
         webviewProvider.postCommentResult(false, msg);
-        vscode2.window.showErrorMessage(`\uCF54\uBA58\uD2B8 \uC2E4\uD328: ${msg}`);
+        vscode3.window.showErrorMessage(`\uCF54\uBA58\uD2B8 \uC2E4\uD328: ${msg}`);
       }
     }
   });
@@ -10793,7 +10865,7 @@ async function promptForMissingApiKey(context, provider) {
   if (!keyName) return;
   const existing = await context.secrets.get(keyName);
   if (existing) return;
-  const shouldSet = await vscode2.window.showWarningMessage(
+  const shouldSet = await vscode3.window.showWarningMessage(
     `${getProviderLabel(provider)} provider\uB97C \uC120\uD0DD\uD588\uC2B5\uB2C8\uB2E4. API \uD0A4\uB97C \uC9C0\uAE08 \uC785\uB825\uD560\uAE4C\uC694?`,
     "\uC785\uB825\uD558\uAE30",
     "\uB098\uC911\uC5D0"
@@ -10806,7 +10878,7 @@ async function ensureApiKeyForAnalysis(context, config) {
   if (config.provider === "ollama") return true;
   const hasKey = config.provider === "gemini" && !!config.geminiApiKey || config.provider === "claude" && !!config.claudeApiKey || config.provider === "chatgpt" && !!config.openaiApiKey;
   if (hasKey) return true;
-  const shouldSet = await vscode2.window.showWarningMessage(
+  const shouldSet = await vscode3.window.showWarningMessage(
     `${getProviderLabel(config.provider)} API \uD0A4\uAC00 \uC124\uC815\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC9C0\uAE08 \uC785\uB825\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?`,
     "\uC785\uB825\uD558\uAE30",
     "\uCDE8\uC18C"
@@ -10831,7 +10903,7 @@ async function setApiKeyForProvider(context, provider) {
     await setOpenAIApiKeyCommand(context);
     return;
   }
-  vscode2.window.showInformationMessage("Ollama\uB294 \uB85C\uCEEC provider\uB77C API \uD0A4 \uC124\uC815\uC774 \uD544\uC694\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.");
+  vscode3.window.showInformationMessage("Ollama\uB294 \uB85C\uCEEC provider\uB77C API \uD0A4 \uC124\uC815\uC774 \uD544\uC694\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.");
 }
 function getApiKeySecretName(provider) {
   if (provider === "gemini") return GEMINI_API_KEY;
@@ -10844,6 +10916,12 @@ function getProviderLabel(provider) {
   if (provider === "gemini") return "Gemini";
   if (provider === "claude") return "Claude";
   return "Ollama";
+}
+function getConfiguredModel(config) {
+  if (config.provider === "chatgpt") return config.chatgptModel ?? "gpt-5.5";
+  if (config.provider === "gemini") return config.geminiModel ?? "gemini-2.5-flash";
+  if (config.provider === "claude") return config.claudeModel ?? "claude-sonnet-4-20250514";
+  return config.ollamaModel ?? "llama3";
 }
 function getModelSettingName(provider) {
   if (provider === "chatgpt") return "chatgptModel";
@@ -10866,7 +10944,7 @@ function getModelOptions(provider) {
   return ["llama3", "llama3.1", "mistral", "codellama"];
 }
 async function askRepository() {
-  const input = await vscode2.window.showInputBox({
+  const input = await vscode3.window.showInputBox({
     title: "Repository",
     prompt: "owner/repo \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD558\uC138\uC694",
     placeHolder: "\uC608: octocat/Hello-World",
@@ -10877,7 +10955,7 @@ async function askRepository() {
   return { owner, repo };
 }
 async function askPRNumber() {
-  return vscode2.window.showInputBox({
+  return vscode3.window.showInputBox({
     title: "Analyze Pull Request",
     prompt: "\uBD84\uC11D\uD560 PR \uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694",
     placeHolder: "\uC608: 1",
@@ -10885,21 +10963,8 @@ async function askPRNumber() {
     validateInput: (value) => /^\d+$/.test(value.trim()) ? void 0 : "\uC22B\uC790\uB9CC \uC785\uB825\uD574\uC8FC\uC138\uC694"
   });
 }
-async function getOrCreateToken(context) {
-  const existingToken = await context.secrets.get(GITHUB_TOKEN_KEY);
-  if (existingToken) return existingToken;
-  const token = await vscode2.window.showInputBox({
-    title: "GitHub Personal Access Token",
-    prompt: "GitHub PAT\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694",
-    password: true,
-    ignoreFocusOut: true
-  });
-  if (!token) return void 0;
-  await context.secrets.store(GITHUB_TOKEN_KEY, token.trim());
-  return token.trim();
-}
 async function loadLLMConfig(context) {
-  const conf = vscode2.workspace.getConfiguration("aiPrInsight.llm");
+  const conf = vscode3.workspace.getConfiguration("aiPrInsight.llm");
   const provider = conf.get("provider", "gemini");
   const geminiApiKey = await context.secrets.get(GEMINI_API_KEY);
   const claudeApiKey = await context.secrets.get(CLAUDE_API_KEY);
@@ -10916,6 +10981,7 @@ async function loadLLMConfig(context) {
     openaiApiKey: openaiApiKey ?? void 0,
     chatgptModel: conf.get("chatgptModel", "gpt-5.5"),
     language: conf.get("language", "ko"),
+    additionalSystemPrompt: conf.get("additionalSystemPrompt", ""),
     hasGeminiApiKey: !!geminiApiKey,
     hasClaudeApiKey: !!claudeApiKey,
     hasOpenAIApiKey: !!openaiApiKey,
@@ -10947,58 +11013,65 @@ ${patchPreview}`;
   ].join("\n");
 }
 async function saveLLMConfig(config) {
-  const conf = vscode2.workspace.getConfiguration("aiPrInsight.llm");
-  await conf.update("provider", config.provider, vscode2.ConfigurationTarget.Global);
+  const conf = vscode3.workspace.getConfiguration("aiPrInsight.llm");
+  await conf.update("provider", config.provider, vscode3.ConfigurationTarget.Global);
   if (config.ollamaEndpoint) {
-    await conf.update("ollamaEndpoint", config.ollamaEndpoint, vscode2.ConfigurationTarget.Global);
+    await conf.update("ollamaEndpoint", config.ollamaEndpoint, vscode3.ConfigurationTarget.Global);
   }
   if (config.ollamaModel) {
-    await conf.update("ollamaModel", config.ollamaModel, vscode2.ConfigurationTarget.Global);
+    await conf.update("ollamaModel", config.ollamaModel, vscode3.ConfigurationTarget.Global);
   }
   if (config.geminiModel) {
-    await conf.update("geminiModel", config.geminiModel, vscode2.ConfigurationTarget.Global);
+    await conf.update("geminiModel", config.geminiModel, vscode3.ConfigurationTarget.Global);
   }
   if (config.claudeModel) {
-    await conf.update("claudeModel", config.claudeModel, vscode2.ConfigurationTarget.Global);
+    await conf.update("claudeModel", config.claudeModel, vscode3.ConfigurationTarget.Global);
   }
   if (config.chatgptModel) {
-    await conf.update("chatgptModel", config.chatgptModel, vscode2.ConfigurationTarget.Global);
+    await conf.update("chatgptModel", config.chatgptModel, vscode3.ConfigurationTarget.Global);
   }
   if (config.language) {
-    await conf.update("language", config.language, vscode2.ConfigurationTarget.Global);
+    await conf.update("language", config.language, vscode3.ConfigurationTarget.Global);
+  }
+  if (config.additionalSystemPrompt !== void 0) {
+    await conf.update(
+      "additionalSystemPrompt",
+      config.additionalSystemPrompt.trim(),
+      vscode3.ConfigurationTarget.Workspace
+    );
   }
 }
 
 // src/editor/EditorController.ts
-var vscode3 = __toESM(require("vscode"));
+var vscode4 = __toESM(require("vscode"));
 var EditorController = class {
-  strongDecoration = vscode3.window.createTextEditorDecorationType({
+  strongDecoration = vscode4.window.createTextEditorDecorationType({
     backgroundColor: "rgba(59, 130, 246, 0.15)",
     border: "1px solid rgba(59, 130, 246, 0.4)",
     borderRadius: "3px",
     isWholeLine: true,
     overviewRulerColor: "rgba(59, 130, 246, 0.8)",
-    overviewRulerLane: vscode3.OverviewRulerLane.Left
+    overviewRulerLane: vscode4.OverviewRulerLane.Left
   });
-  weakDecoration = vscode3.window.createTextEditorDecorationType({
+  weakDecoration = vscode4.window.createTextEditorDecorationType({
     backgroundColor: "rgba(59, 130, 246, 0.06)",
     border: "1px dashed rgba(59, 130, 246, 0.2)",
     isWholeLine: true
   });
   async highlightCode(filename, lineStart, lineEnd, confidence = 1) {
-    const doc = await vscode3.workspace.openTextDocument(filename);
-    const editor = await vscode3.window.showTextDocument(doc, vscode3.ViewColumn.One);
-    const range = new vscode3.Range(
+    const doc = await vscode4.workspace.openTextDocument(filename);
+    const editor = await vscode4.window.showTextDocument(doc, vscode4.ViewColumn.One);
+    const range = new vscode4.Range(
       Math.max(0, lineStart - 1),
       0,
       Math.max(0, lineEnd - 1),
       Number.MAX_SAFE_INTEGER
     );
     editor.setDecorations(confidence >= 0.3 ? this.strongDecoration : this.weakDecoration, [range]);
-    editor.revealRange(range, vscode3.TextEditorRevealType.InCenter);
+    editor.revealRange(range, vscode4.TextEditorRevealType.InCenter);
   }
   clearHighlights() {
-    const editor = vscode3.window.activeTextEditor;
+    const editor = vscode4.window.activeTextEditor;
     if (!editor) {
       return;
     }
@@ -11006,7 +11079,7 @@ var EditorController = class {
     editor.setDecorations(this.weakDecoration, []);
   }
   registerReverseMapping(mappingTableRef, onMatch) {
-    return vscode3.window.onDidChangeTextEditorSelection((event) => {
+    return vscode4.window.onDidChangeTextEditorSelection((event) => {
       const selection = event.selections[0];
       if (!selection || selection.isEmpty) {
         return;
@@ -11024,11 +11097,287 @@ var EditorController = class {
   }
 };
 
+// src/github/RepoResolver.ts
+var vscode5 = __toESM(require("vscode"));
+function parseGitHubRemote(remoteUrl) {
+  const value = remoteUrl.trim().replace(/\/+$/, "");
+  if (!value) return void 0;
+  const scpMatch = value.match(/^(?:[^@/\s]+@)?github\.com:\/?(.+)$/i);
+  if (scpMatch) {
+    return parseRepositoryPath(scpMatch[1]);
+  }
+  try {
+    const url = new URL(value);
+    if (url.hostname.toLowerCase() !== "github.com") return void 0;
+    if (!["http:", "https:", "ssh:", "git:"].includes(url.protocol)) return void 0;
+    return parseRepositoryPath(url.pathname);
+  } catch {
+    return void 0;
+  }
+}
+function deduplicateGitHubRepositories(repositories) {
+  const uniqueRepositories = /* @__PURE__ */ new Map();
+  for (const repository of repositories) {
+    const key = `${repository.owner.toLowerCase()}/${repository.repo.toLowerCase()}`;
+    if (!uniqueRepositories.has(key)) uniqueRepositories.set(key, repository);
+  }
+  return [...uniqueRepositories.values()].sort(
+    (a, b) => `${a.owner}/${a.repo}`.localeCompare(`${b.owner}/${b.repo}`)
+  );
+}
+var RepoResolver = class {
+  changeEmitter = new vscode5.EventEmitter();
+  disposables = [this.changeEmitter];
+  repositoryListeners = [];
+  api;
+  initializing;
+  onDidChange = this.changeEmitter.event;
+  async getRepositories() {
+    await this.initialize();
+    if (!this.api) return [];
+    const repositories = [];
+    for (const localRepository of this.api.repositories) {
+      for (const remote of localRepository.state.remotes) {
+        const parsed = parseGitHubRemote(remote.fetchUrl ?? remote.pushUrl ?? "");
+        if (!parsed) continue;
+        repositories.push({
+          ...parsed,
+          rootUri: localRepository.rootUri.toString(),
+          remoteName: remote.name
+        });
+      }
+    }
+    return deduplicateGitHubRepositories(repositories);
+  }
+  dispose() {
+    this.disposeRepositoryListeners();
+    for (const disposable of this.disposables) disposable.dispose();
+  }
+  async initialize() {
+    if (this.api) return;
+    if (this.initializing) return this.initializing;
+    this.initializing = this.activateGitExtension();
+    await this.initializing;
+  }
+  async activateGitExtension() {
+    const extension = vscode5.extensions.getExtension("vscode.git");
+    if (!extension) return;
+    const gitExtension = extension.isActive ? extension.exports : await extension.activate();
+    this.api = gitExtension.getAPI(1);
+    this.disposables.push(
+      this.api.onDidOpenRepository(() => this.handleRepositoriesChanged()),
+      this.api.onDidCloseRepository(() => this.handleRepositoriesChanged())
+    );
+    this.refreshRepositoryListeners();
+  }
+  handleRepositoriesChanged() {
+    this.refreshRepositoryListeners();
+    this.changeEmitter.fire();
+  }
+  refreshRepositoryListeners() {
+    this.disposeRepositoryListeners();
+    if (!this.api) return;
+    this.repositoryListeners = this.api.repositories.map(
+      (repository) => repository.state.onDidChange(() => this.changeEmitter.fire())
+    );
+  }
+  disposeRepositoryListeners() {
+    for (const disposable of this.repositoryListeners) disposable.dispose();
+    this.repositoryListeners = [];
+  }
+};
+function parseRepositoryPath(path2) {
+  const segments = path2.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+  if (segments.length !== 2) return void 0;
+  const owner = decodePathSegment(segments[0]);
+  const repo = decodePathSegment(segments[1]).replace(/\.git$/i, "");
+  if (!owner || !repo) return void 0;
+  return { owner, repo };
+}
+function decodePathSegment(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+// src/sidebar/OpenPullRequestsProvider.ts
+var vscode6 = __toESM(require("vscode"));
+var OpenPullRequestsProvider = class {
+  constructor(context, repoResolver) {
+    this.context = context;
+    this.repoResolver = repoResolver;
+    this.resolverSubscription = repoResolver.onDidChange(() => this.refresh());
+  }
+  changeEmitter = new vscode6.EventEmitter();
+  resolverSubscription;
+  pullRequestCache = /* @__PURE__ */ new Map();
+  onDidChangeTreeData = this.changeEmitter.event;
+  getTreeItem(element) {
+    return element;
+  }
+  async getChildren(element) {
+    if (!element) return this.getRepositoryItems();
+    if (!(element instanceof RepositoryTreeItem)) return [];
+    return this.getPullRequestItems(element.repository);
+  }
+  refresh() {
+    this.pullRequestCache.clear();
+    this.changeEmitter.fire(void 0);
+  }
+  dispose() {
+    this.resolverSubscription.dispose();
+    this.changeEmitter.dispose();
+  }
+  async getRepositoryItems() {
+    const repositories = await this.repoResolver.getRepositories();
+    if (repositories.length === 0) {
+      return [
+        new MessageTreeItem(
+          "GitHub \uC800\uC7A5\uC18C\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
+          "github.com remote\uAC00 \uC788\uB294 \uC800\uC7A5\uC18C\uB97C \uC5F4\uC5B4\uC8FC\uC138\uC694",
+          "warning"
+        )
+      ];
+    }
+    const token = await getStoredGitHubToken(this.context);
+    if (!token) {
+      return [
+        new MessageTreeItem(
+          "GitHub \uD1A0\uD070 \uC124\uC815",
+          "open PR\uC744 \uBD88\uB7EC\uC624\uB824\uBA74 \uBA3C\uC800 \uC124\uC815\uD558\uC138\uC694",
+          "key",
+          "ai-pr-insight.setGitHubToken"
+        )
+      ];
+    }
+    return repositories.map((repository) => new RepositoryTreeItem(repository));
+  }
+  async getPullRequestItems(repository) {
+    const token = await getStoredGitHubToken(this.context);
+    if (!token) {
+      return [
+        new MessageTreeItem(
+          "GitHub \uD1A0\uD070 \uC124\uC815",
+          "PR \uBAA9\uB85D\uC744 \uBD88\uB7EC\uC624\uB824\uBA74 \uD544\uC694\uD569\uB2C8\uB2E4",
+          "key",
+          "ai-pr-insight.setGitHubToken"
+        )
+      ];
+    }
+    try {
+      const pullRequests = await this.getPullRequests(repository, token);
+      if (pullRequests.length === 0) {
+        return [
+          new MessageTreeItem(
+            "\uC5F4\uB9B0 PR\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
+            `${repository.owner}/${repository.repo}`,
+            "check"
+          )
+        ];
+      }
+      return pullRequests.map(
+        (pullRequest) => new PullRequestTreeItem(repository, pullRequest)
+      );
+    } catch (error) {
+      return [
+        new MessageTreeItem(
+          "PR \uBAA9\uB85D\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
+          toSidebarErrorMessage(error),
+          "error"
+        )
+      ];
+    }
+  }
+  getPullRequests(repository, token) {
+    const key = `${repository.owner.toLowerCase()}/${repository.repo.toLowerCase()}`;
+    const cached = this.pullRequestCache.get(key);
+    if (cached) return cached;
+    const request2 = new GitHubClient(token).listOpenPullRequests(
+      repository.owner,
+      repository.repo
+    );
+    this.pullRequestCache.set(key, request2);
+    return request2;
+  }
+};
+var RepositoryTreeItem = class extends vscode6.TreeItem {
+  constructor(repository) {
+    super(
+      `${repository.owner}/${repository.repo}`,
+      vscode6.TreeItemCollapsibleState.Expanded
+    );
+    this.repository = repository;
+    this.contextValue = "githubRepository";
+    this.description = repository.remoteName;
+    this.iconPath = new vscode6.ThemeIcon("repo");
+    this.tooltip = new vscode6.MarkdownString(
+      `**${repository.owner}/${repository.repo}**
+
+Remote: ${repository.remoteName}`
+    );
+  }
+};
+var PullRequestTreeItem = class extends vscode6.TreeItem {
+  constructor(repository, pullRequest) {
+    super(`#${pullRequest.number} ${pullRequest.title}`, vscode6.TreeItemCollapsibleState.None);
+    this.pullRequest = pullRequest;
+    this.owner = repository.owner;
+    this.repo = repository.repo;
+    this.prNumber = pullRequest.number;
+    this.contextValue = "openPullRequest";
+    this.description = pullRequest.isDraft ? `Draft \xB7 ${pullRequest.author}` : pullRequest.author;
+    this.iconPath = new vscode6.ThemeIcon(
+      pullRequest.isDraft ? "git-pull-request-draft" : "git-pull-request"
+    );
+    this.tooltip = new vscode6.MarkdownString(
+      [
+        `**#${pullRequest.number} ${pullRequest.title}**`,
+        "",
+        `${pullRequest.headBranch} \u2192 ${pullRequest.baseBranch}`,
+        "",
+        `\uC791\uC131\uC790: ${pullRequest.author}${pullRequest.isDraft ? " \xB7 Draft" : ""}`
+      ].join("\n")
+    );
+  }
+  owner;
+  repo;
+  prNumber;
+};
+var MessageTreeItem = class extends vscode6.TreeItem {
+  constructor(label, description, icon, command) {
+    super(label, vscode6.TreeItemCollapsibleState.None);
+    this.description = description;
+    this.iconPath = new vscode6.ThemeIcon(icon);
+    this.contextValue = "prExplorerMessage";
+    if (command) {
+      this.command = {
+        command,
+        title: label
+      };
+    }
+  }
+};
+function toSidebarErrorMessage(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("401") || message.includes("Bad credentials")) {
+    return "GitHub \uD1A0\uD070\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694";
+  }
+  if (message.includes("403")) {
+    return "\uC800\uC7A5\uC18C \uC811\uADFC \uAD8C\uD55C \uB610\uB294 API \uD560\uB2F9\uB7C9\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694";
+  }
+  if (message.includes("404")) {
+    return "\uC800\uC7A5\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4";
+  }
+  return message;
+}
+
 // src/extension.ts
 init_logger();
 
 // src/webview/WebviewProvider.ts
-var vscode4 = __toESM(require("vscode"));
+var vscode7 = __toESM(require("vscode"));
 var WebviewProvider = class _WebviewProvider {
   constructor(extensionUri) {
     this.extensionUri = extensionUri;
@@ -11041,18 +11390,19 @@ var WebviewProvider = class _WebviewProvider {
   }
   show(prNumber) {
     if (this.panel) {
-      this.panel.reveal(vscode4.ViewColumn.Beside);
+      this.panel.title = `AI PR Insight: PR #${prNumber}`;
+      this.panel.reveal(vscode7.ViewColumn.Beside);
       return this.panel;
     }
-    const column = vscode4.window.activeTextEditor ? vscode4.ViewColumn.Beside : vscode4.ViewColumn.One;
-    this.panel = vscode4.window.createWebviewPanel(
+    const column = vscode7.window.activeTextEditor ? vscode7.ViewColumn.Beside : vscode7.ViewColumn.One;
+    this.panel = vscode7.window.createWebviewPanel(
       _WebviewProvider.viewType,
       `AI PR Insight: PR #${prNumber}`,
       column,
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [vscode4.Uri.joinPath(this.extensionUri, "webview-dist")]
+        localResourceRoots: [vscode7.Uri.joinPath(this.extensionUri, "webview-dist")]
       }
     );
     this.panel.webview.html = this.getHtml(this.panel.webview);
@@ -11088,10 +11438,10 @@ var WebviewProvider = class _WebviewProvider {
       payload: { summaryBlockId, sentenceIndex }
     });
   }
-  postChatResponse(message) {
+  postChatResponse(message, modelLabel) {
     this.panel?.webview.postMessage({
       type: "chatResponse",
-      payload: { message }
+      payload: { message, modelLabel }
     });
   }
   postCommentResult(success, error) {
@@ -11120,7 +11470,7 @@ var WebviewProvider = class _WebviewProvider {
         void this.handlers.onTestConnection(event.payload);
         break;
       case "reanalyze":
-        void this.handlers.onReanalyze();
+        void this.handlers.onReanalyze(event.payload);
         break;
       case "clearHighlight":
         void this.handlers.onClearHighlight();
@@ -11137,10 +11487,10 @@ var WebviewProvider = class _WebviewProvider {
   }
   getHtml(webview) {
     const scriptUri = webview.asWebviewUri(
-      vscode4.Uri.joinPath(this.extensionUri, "webview-dist", "bundle.js")
+      vscode7.Uri.joinPath(this.extensionUri, "webview-dist", "bundle.js")
     );
     const styleUri = webview.asWebviewUri(
-      vscode4.Uri.joinPath(this.extensionUri, "webview-dist", "bundle.css")
+      vscode7.Uri.joinPath(this.extensionUri, "webview-dist", "bundle.css")
     );
     const nonce = String(Date.now());
     return `<!DOCTYPE html>
@@ -11168,49 +11518,82 @@ function activate(context) {
   const log = getLogger();
   const webviewProvider = new WebviewProvider(context.extensionUri);
   const editorController = new EditorController();
+  const repoResolver = new RepoResolver();
+  const pullRequestsProvider = new OpenPullRequestsProvider(context, repoResolver);
   log.appendLine("[Extension] AI PR Insight activated");
   const astParser = new ASTParser();
   astParser.initialize(context.extensionPath).catch((err) => {
     log.appendLine(`[Extension] ASTParser init warning: ${err}`);
   });
   bindWebviewHandlers(context, webviewProvider, editorController);
-  const analyzePRDisposable = vscode5.commands.registerCommand(
+  const analyzePRDisposable = vscode8.commands.registerCommand(
     "ai-pr-insight.analyzePR",
     async () => {
       log.appendLine("[Command] Analyze PR triggered");
       await analyzePRCommand(context, webviewProvider, editorController);
     }
   );
-  const setTokenDisposable = vscode5.commands.registerCommand(
+  const setTokenDisposable = vscode8.commands.registerCommand(
     "ai-pr-insight.setGitHubToken",
     async () => {
-      await setGitHubTokenCommand(context);
+      if (await setGitHubTokenCommand(context)) {
+        pullRequestsProvider.refresh();
+      }
     }
   );
-  const setLLMApiKeyDisposable = vscode5.commands.registerCommand(
+  const refreshPullRequestsDisposable = vscode8.commands.registerCommand(
+    "ai-pr-insight.refreshPullRequests",
+    () => pullRequestsProvider.refresh()
+  );
+  const analyzeSelectedPRDisposable = vscode8.commands.registerCommand(
+    "ai-pr-insight.analyzeSelectedPR",
+    async (item) => {
+      if (!item) return;
+      log.appendLine(
+        `[Command] Analyze selected PR triggered: ${item.owner}/${item.repo}#${item.prNumber}`
+      );
+      await analyzeSelectedPR(
+        context,
+        webviewProvider,
+        editorController,
+        { owner: item.owner, repo: item.repo },
+        item.prNumber
+      );
+    }
+  );
+  const setLLMApiKeyDisposable = vscode8.commands.registerCommand(
     "ai-pr-insight.setLLMApiKey",
     async () => {
       await setLLMApiKeyCommand(context);
     }
   );
-  const setLLMProviderDisposable = vscode5.commands.registerCommand(
+  const setLLMProviderDisposable = vscode8.commands.registerCommand(
     "ai-pr-insight.setLLMProvider",
     async () => {
       await setLLMProviderCommand(context);
     }
   );
-  const setLLMModelDisposable = vscode5.commands.registerCommand(
+  const setLLMModelDisposable = vscode8.commands.registerCommand(
     "ai-pr-insight.setLLMModel",
     async () => {
       await setLLMModelCommand();
     }
   );
+  const pullRequestsTree = vscode8.window.registerTreeDataProvider(
+    "ai-pr-insight.openPullRequests",
+    pullRequestsProvider
+  );
   context.subscriptions.push(
     analyzePRDisposable,
+    analyzeSelectedPRDisposable,
+    refreshPullRequestsDisposable,
     setTokenDisposable,
     setLLMApiKeyDisposable,
     setLLMProviderDisposable,
-    setLLMModelDisposable
+    setLLMModelDisposable,
+    pullRequestsTree,
+    pullRequestsProvider,
+    repoResolver
   );
 }
 function deactivate() {
