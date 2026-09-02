@@ -3,6 +3,10 @@
   "displayName": "AI PR Insight",
   "description": "LLM-powered interactive PR analysis with call graphs and code mapping",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaewooMaeng/PRiday.git"
+  },
   "publisher": "local",
   "engines": {
     "vscode": "^1.85.0"

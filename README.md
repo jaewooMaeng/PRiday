@@ -27,13 +27,13 @@ PRiday summarizes changed code, connects call relationships to the actual implem
 
 Select an open Pull Request from the sidebar and launch the analysis directly inside VS Code.
 
-![Starting a PR analysis with PRiday](https://raw.githubusercontent.com/jaewooMaeng/PRiday/main/docs/assets/initialize-analysis.gif)
+![Starting a PR analysis with PRiday](./docs/assets/initialize-analysis.gif)
 
 ### Explore the analysis
 
 Navigate the PR summary, call graph, in-depth explanations, code mappings, and changed files in one interactive workspace.
 
-![Exploring PR analysis results with PRiday](https://raw.githubusercontent.com/jaewooMaeng/PRiday/main/docs/assets/review-analysis.gif)
+![Exploring PR analysis results with PRiday](./docs/assets/review-analysis.gif)
 
 ## Features
 
