@@ -2,9 +2,16 @@
 
 > Understand the change before you approve it.
 
-**PRiday** is an AI code review assistant that helps you understand Pull Requests faster and more deeply.
+**PRiday** is an **open-source VS Code extension** — an AI code review assistant that helps you understand Pull Requests faster and more deeply, without leaving your editor.
 
 The name combines **PR + Friday**. Like F.R.I.D.A.Y., the AI assistant that helps Iron Man make sense of complex situations, PRiday stays beside the reviewer and explains the structure and context of code changes. It does not approve reviews on your behalf; it helps people ask better questions and make better decisions.
+
+### Open source, and built to stay that way
+
+- **Fully open source** — the entire extension, from the VS Code host to the React webview, lives in [this repository](https://github.com/jaewooMaeng/PRiday). Read it, fork it, or run your own build.
+- **Runs inside your VS Code** — PRiday is a native extension (sidebar, commands, webview panel), not a hosted service that your code has to be uploaded to.
+- **Bring your own model and keys** — Gemini, Claude, OpenAI, or a fully local Ollama model. Your GitHub token and API keys stay in VS Code `SecretStorage` on your machine; PRiday has no backend of its own.
+- **Open to contributions** — issues, ideas, and pull requests are all welcome. See [Contributing](#contributing).
 
 > The current development preview still displays the former name, `AI PR Insight`, in parts of the VS Code UI and command names.
 
@@ -209,7 +216,9 @@ Debug logs are available under VS Code **Output → AI PR Insight**.
 
 ## Contributing
 
-PRiday started from the belief that the industry needs not only tools that generate more code, but also tools that help people **understand generated code more effectively**.
+PRiday started from the belief that the industry needs not only tools that generate more code, but also tools that help people **understand generated code more effectively**. It is developed in the open, and outside contributions are a core part of how it should grow.
 
-For ideas, bug reports, feature development, or any other contribution, contact [jwmaeng@snu.ac.kr](mailto:jwmaeng@snu.ac.kr).
+- Found a bug or have an idea? Open an issue on [GitHub](https://github.com/jaewooMaeng/PRiday/issues).
+- Want to build something? Fork the repository, follow [Development](#development) to run it in the Extension Development Host, and send a pull request.
+- Prefer to talk first? Reach out at [jwmaeng@snu.ac.kr](mailto:jwmaeng@snu.ac.kr).
 
